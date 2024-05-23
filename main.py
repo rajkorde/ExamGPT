@@ -1,5 +1,9 @@
+from dotenv import load_dotenv
+
 from examgpt.core.question import LongForm, MultipleChoice
 from examgpt.core.sources import PDFFile, Sources
+
+assert load_dotenv()
 
 
 def main() -> None:

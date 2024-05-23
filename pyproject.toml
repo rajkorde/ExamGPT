@@ -6,8 +6,10 @@ authors = ["Rajesh Korde <rajesh.korde@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.13"
 pydantic = "^2.7.1"
+pydantic-settings = "^2.2.1"
+unstructured = {extras = ["local-inference"], version = "^0.14.2"}
 
 
 [build-system]
