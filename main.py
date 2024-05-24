@@ -1,24 +1,22 @@
 from dotenv import load_dotenv
 
-from examgpt.core.question import LongForm, MultipleChoice
-from examgpt.core.sources import PDFFile, Sources
+from examgpt.ai.models.openai import OpenAIConfig
+from examgpt.sources.filetypes.pdf import PDFFile
 
-assert load_dotenv()
+assert load_dotenv("./.env")
+
+pdf_file = "testdata/aws2.pdf"
 
 
 def main() -> None:
-    print(LongForm(question="What is 2 + 2?", answer="4"))
-    print(
-        MultipleChoice(
-            question="What is 2 + 2?", choices=["2", "3", "4", "5"], answer="4"
-        )
-    )
+    pdf = PDFFile(pdf_file)
+    print(pdf)
 
-    pdf_source = PDFFile(location="test.pdf")
-    print(pdf_source)
-
-    sources = Sources(sources=[pdf_source])
-    print(sources)
+    full_text = pdf.create_text()
+    model = OpenAIConfig()
+    token_count = model.get_token_count(full_text)
+    print(f"token count: {model.get_token_count(full_text)}")
+    print(model.estimate_cost(pdf.get_token_count(full_text))
 
 
 if __name__ == "__main__":
