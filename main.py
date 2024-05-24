@@ -15,8 +15,8 @@ def main() -> None:
     full_text = pdf.create_text()
     model = OpenAIConfig()
     token_count = model.get_token_count(full_text)
-    print(f"token count: {model.get_token_count(full_text)}")
-    print(model.estimate_cost(pdf.get_token_count(full_text))
+    print(f"token count: {token_count}")
+    print(model.estimate_cost(token_count))
 
 
 if __name__ == "__main__":
