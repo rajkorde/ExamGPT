@@ -1,6 +1,6 @@
-import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from pathlib import Path
 from uuid import uuid4
 
 # from examgpt.sources.chunkers.base import Chunker
@@ -9,16 +9,17 @@ from examgpt.sources.chunkers.textchunk import TextChunk
 
 @dataclass
 class Source(ABC):
-    location: str
+    filename: str
     # chunker: Chunker
     id: str = field(default_factory=lambda: str(uuid4()))
     full_text: str | None = None
 
     def __post_init__(self):
-        self.location = os.path.abspath(self.location)
-        print(self.location)
-        if not os.path.exists(self.location):
-            raise FileNotFoundError(f"File not found: {self.location}")
+        file = Path(self.filename).resolve()
+        print(file)
+        if not file.exists():
+            raise FileNotFoundError(f"File not found: {file}")
+        self.location = str(file)
 
     @abstractmethod
     def chunk(self) -> list[TextChunk]: ...
