@@ -2,6 +2,7 @@ import sys
 
 # from dotenv import load_dotenv
 from loguru import logger
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -10,8 +11,8 @@ class ApplicationSettings(BaseSettings):
     TG_BOT_TOKEN: str
     MODEL_FAMILY: str
     MODEL_NAME: str
-    log_level: str = "INFO"
-    temp_folder: str = "temp"
+    log_level: str = Field(default="INFO")
+    temp_folder: str = Field(default="temp")
 
     class Config:
         env_file = ".env"
@@ -22,6 +23,3 @@ class ApplicationSettings(BaseSettings):
     def configure_logging(self):
         logger.remove()
         logger.add(sys.stdout, level=self.log_level.upper())
-
-
-settings = ApplicationSettings()

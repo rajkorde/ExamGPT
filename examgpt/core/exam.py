@@ -10,3 +10,4 @@ class Exam:
     sources: Sources
     # TODO: Replace with friendly id
     exam_id: str = field(default_factory=lambda: str(uuid4()))
+    post_event: bool = False

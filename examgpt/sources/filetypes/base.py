@@ -16,7 +16,6 @@ class Source(ABC):
 
     def __post_init__(self):
         file = Path(self.filename).resolve()
-        print(file)
         if not file.exists():
             raise FileNotFoundError(f"File not found: {file}")
         self.location = str(file)
@@ -31,3 +30,6 @@ class Source(ABC):
 @dataclass
 class Sources:
     sources: list[Source] = field(default_factory=list)
+
+    def to_list(self) -> list[str]:
+        return [source.filename for source in self.sources]
