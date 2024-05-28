@@ -11,9 +11,13 @@ if TYPE_CHECKING:
     from examgpt.sources.filetypes.base import Source
 
 
+# TODO: remove chunk limit.. added for debugging only
+# chunk_limit of 0 means no limits
+# stateless
 class SimplePDFChunker:
-    def __init__(self, chunk_size: int):
+    def __init__(self, chunk_size: int, chunk_limit: int = 0):
         self.chunk_size = chunk_size
+        self.chunk_limit = chunk_limit
         self._elements: list[Element] = list()
 
     def _split_pdf(self, location: str) -> list[Element]:
@@ -41,5 +45,7 @@ class SimplePDFChunker:
             page_number = element.metadata.page_number
             chunks.append(TextChunk(id, text, page_number))
 
-        self.chunks = chunks
+        if self.chunk_limit != 0:
+            chunks = chunks[: self.chunk_limit]
+
         return chunks

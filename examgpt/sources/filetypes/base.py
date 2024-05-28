@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class Source(ABC):
     location: str
     chunker: Chunker
+    chunks: list[TextChunk] = field(default_factory=list)
     id: str = field(default_factory=lambda: str(uuid4()))
     full_text: str | None = None
 
@@ -32,10 +33,9 @@ class Source(ABC):
     def update_location(self, new_location: str) -> None:
         self.location = new_location
 
-
-@dataclass
-class Sources:
-    sources: list[Source] = field(default_factory=list)
-
-    def to_list(self) -> list[str]:
-        return [source.location for source in self.sources]
+    def to_dict(self):
+        return {
+            "location": self.location,
+            "id": self.id,
+            "chunks": [chunk.to_dict() for chunk in self.chunks],
+        }

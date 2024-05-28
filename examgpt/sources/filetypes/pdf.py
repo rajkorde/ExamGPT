@@ -46,13 +46,18 @@ class PDFFile(Source):
     #     return chunks
 
     def chunk(self) -> list[TextChunk]:
-        if self.chunker:
-            return self.chunker.chunk(self)
-        else:
-            raise RuntimeError(f"Chunker is not defined: {self.location}")
+        self.chunks = self.chunker.chunk(self)
+        return self.chunks
 
     def create_text(self) -> str:
-        return "pass"
+        if self.full_text:
+            return self.full_text
+
+        if not self.chunks:
+            self.chunks = self.chunker.chunk(self)
+
+        self.full_text = "".join([chunk.text for chunk in self.chunks])
+        return self.full_text
 
     # def create_text(self) -> str:
     #     if len(self._elements) == 0:

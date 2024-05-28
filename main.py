@@ -8,7 +8,6 @@ from examgpt.core.exam import Exam
 
 # from examgpt.frontend.chatbot.chat import start_chat
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
-from examgpt.sources.filetypes.base import Sources
 from examgpt.sources.filetypes.pdf import PDFFile
 from examgpt.storage.files import FileStorage
 
@@ -24,18 +23,21 @@ chunker = SimplePDFChunker(chunk_size=2500)
 pdf = PDFFile(location=pdf_file, chunker=chunker)
 logger.info(pdf)
 
-sources = Sources(sources=[pdf])
-exam = Exam(name=exam_name, sources=sources)
+exam = Exam(name=exam_name, sources=[pdf])
 logger.info(exam)
 
 destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
 storage = FileStorage(destination_folder=destination_folder)
-storage.copy(sources=sources)
+storage.copy(sources=exam.sources)
 
+# updated location after copying
 logger.info(pdf)
 
 chunks = pdf.chunk()
-logger.info(chunks[0])
+
+storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
+logger.info(f"Length of whole document: {pdf.full_text} characters")
+
 
 # create exam
 
