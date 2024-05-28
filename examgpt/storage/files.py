@@ -6,6 +6,7 @@ from typing import Any
 
 from loguru import logger
 
+from examgpt.sources.filetypes.base import Sources
 from examgpt.storage.base import Storage
 
 
@@ -13,14 +14,15 @@ from examgpt.storage.base import Storage
 class FileStorage(Storage):
     destination_folder: str
 
-    def copy(self, sources: list[str]) -> None:
-        for file in sources:
-            print(file)
-            file_path = Path(file)
+    def copy(self, sources: Sources) -> None:
+        for source in sources.sources:
+            print(source.location)
+            file_path = Path(source.location)
             if not file_path.is_file():
                 logger.warning(f"File does not exist: {file_path}")
             else:
-                shutil.copy2(file_path, self.destination_folder)
+                destination_file = shutil.copy2(file_path, self.destination_folder)
+                source.update_location(new_location=destination_file)
                 logger.info(f"Copied file: {file_path}")
 
     def save_to_json(self, data: dict[Any, Any], filename: str) -> None:

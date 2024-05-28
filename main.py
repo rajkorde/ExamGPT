@@ -7,6 +7,7 @@ from examgpt.core.config import ApplicationSettings
 from examgpt.core.exam import Exam
 
 # from examgpt.frontend.chatbot.chat import start_chat
+from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import Sources
 from examgpt.sources.filetypes.pdf import PDFFile
 from examgpt.storage.files import FileStorage
@@ -18,8 +19,9 @@ exam_name = "AWS Solution Architect Associate Certification"
 pdf_file = "testdata/aws2.pdf"
 
 # create sources
+chunker = SimplePDFChunker(chunk_size=2500)
 
-pdf = PDFFile(pdf_file)
+pdf = PDFFile(location=pdf_file, chunker=chunker)
 logger.info(pdf)
 
 sources = Sources(sources=[pdf])
@@ -28,7 +30,12 @@ logger.info(exam)
 
 destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
 storage = FileStorage(destination_folder=destination_folder)
-storage.copy(sources=sources.to_list())
+storage.copy(sources=sources)
+
+logger.info(pdf)
+
+chunks = pdf.chunk()
+logger.info(chunks[0])
 
 # create exam
 
