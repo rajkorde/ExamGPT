@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
+from examgpt.core.exam import Exam
 from examgpt.sources.filetypes.base import Source
 
 
@@ -12,3 +13,6 @@ class Storage(ABC):
 
     @abstractmethod
     def save_to_json(self, data: dict[Any, Any], filename: str) -> None: ...
+
+    @abstractmethod
+    def get_exam(self, location: str) -> Exam: ...

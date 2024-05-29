@@ -6,6 +6,7 @@ from typing import Any
 
 from loguru import logger
 
+from examgpt.core.exam import Exam
 from examgpt.sources.filetypes.base import Source
 from examgpt.storage.base import Storage
 
@@ -13,6 +14,10 @@ from examgpt.storage.base import Storage
 @dataclass
 class FileStorage(Storage):
     folder: str
+
+    def __post_init__(self) -> None:
+        path = Path(self.folder)
+        path.mkdir(parents=True, exist_ok=True)
 
     def copy(self, sources: list[Source]) -> None:
         for source in sources:
@@ -31,6 +36,9 @@ class FileStorage(Storage):
         with open(filename_with_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    def __post_init__(self) -> None:
-        path = Path(self.folder)
-        path.mkdir(parents=True, exist_ok=True)
+    def get_exam_from_json(self, filename: str) -> Exam:
+        filename_with_path = f"{self.folder}/{filename}"
+        logger.info(f"Saving chunks to {filename_with_path}")
+        with open(filename_with_path, "r") as f:
+            data = json.load(f)
+        return Exam.from_dict(data)
