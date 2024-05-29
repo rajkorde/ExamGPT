@@ -36,8 +36,8 @@ class FileStorage(Storage):
         with open(filename_with_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    def get_exam_from_json(self, filename: str) -> Exam:
-        filename_with_path = f"{self.folder}/{filename}"
+    def get_exam(self, location: str) -> Exam:
+        filename_with_path = f"{self.folder}/{location}"
         logger.info(f"Saving chunks to {filename_with_path}")
         with open(filename_with_path, "r") as f:
             data = json.load(f)

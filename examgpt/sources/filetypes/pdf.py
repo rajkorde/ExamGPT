@@ -2,16 +2,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from attr import field
 
 # from typing import Sequence
 # from unstructured.documents.elements import Element
 # from unstructured.partition.pdf import partition_pdf
-
-if TYPE_CHECKING:
-    from examgpt.sources.chunkers.base import TextChunk
+from examgpt.sources.chunkers.base import TextChunk
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import Source, SourceType
 

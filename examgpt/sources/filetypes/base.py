@@ -20,8 +20,8 @@ class SourceType(Enum):
 @dataclass
 class Source(ABC):
     location: str
-    type: SourceType
     chunker: Chunker
+    type: SourceType
     chunks: list[TextChunk] = field(default_factory=list)
     id: str = field(default_factory=lambda: str(uuid4()))
     full_text: str | None = None

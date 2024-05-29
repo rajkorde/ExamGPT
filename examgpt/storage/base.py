@@ -6,6 +6,7 @@ from examgpt.core.exam import Exam
 from examgpt.sources.filetypes.base import Source
 
 
+# TODO: This should not be a data class, make it a protocol
 @dataclass
 class Storage(ABC):
     @abstractmethod
