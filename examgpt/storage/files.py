@@ -12,7 +12,7 @@ from examgpt.storage.base import Storage
 
 @dataclass
 class FileStorage(Storage):
-    destination_folder: str
+    folder: str
 
     def copy(self, sources: list[Source]) -> None:
         for source in sources:
@@ -21,16 +21,16 @@ class FileStorage(Storage):
             if not file_path.is_file():
                 logger.warning(f"File does not exist: {file_path}")
             else:
-                destination_file = shutil.copy2(file_path, self.destination_folder)
+                destination_file = shutil.copy2(file_path, self.folder)
                 source.update_location(new_location=destination_file)
                 logger.info(f"Copied file: {file_path}")
 
     def save_to_json(self, data: dict[Any, Any], filename: str) -> None:
-        filename_with_path = f"{self.destination_folder}/{filename}"
+        filename_with_path = f"{self.folder}/{filename}"
         logger.info(f"Saving chunks to {filename_with_path}")
         with open(filename_with_path, "w") as f:
             json.dump(data, f, indent=4)
 
     def __post_init__(self) -> None:
-        path = Path(self.destination_folder)
+        path = Path(self.folder)
         path.mkdir(parents=True, exist_ok=True)

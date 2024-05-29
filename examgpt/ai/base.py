@@ -1,28 +1,13 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Protocol
+from dataclasses import dataclass
 
 import tiktoken
+from langchain.chat_models.base import BaseChatModel
+from langchain_core.messages import HumanMessage, SystemMessage
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from examgpt.ai.constants import ModelFamily, ModelName
 from examgpt.core.question import LongForm, MultipleChoice
-
-# from pydantic_settings import BaseSettings
-
-
-class ModelFamily(Enum):
-    OPENAI = "openai"
-    OLLAMA = "ollama"
-    GOOGLE = "google"
-
-
-class ModelName(Enum):
-    GPT3_5_TURBO = "gpt-3.5-turbo-0125"
-    GPT4O = "gpt-4o"
-    GEMINIPRO1_5 = "geminipro-1.5"
-    GEMINI_FLASH = "geminiflash"
-    LLAMA2 = "llama2"
-    LLAMA3 = "llama3"
 
 
 @dataclass
@@ -33,6 +18,7 @@ class ModelConfig:
     temperature: float = 0.7
     # bump the cost of by this amount to factor in input and output tokens being different price
     fuzz_factor: float = 1.3
+    chunk_size: int = 2500
 
     def estimate_cost(self, token_count: int) -> float:
         return round(
@@ -47,82 +33,28 @@ class ModelConfig:
 
 
 @dataclass
-class OpenAIConfig(ModelConfig):
-    family: ModelFamily = field(default=ModelFamily.OPENAI)
-    name: ModelName = field(default=ModelName.GPT3_5_TURBO)
-    cost_ppm_token: int = 50
-
-
-class GenerateLongForm(Protocol):
-    def generate_lf(self, text: str) -> LongForm: ...
-
-
-class GenerateLongFormOpenAI(GenerateLongForm):
-    def generate_lf(self, text: str) -> LongForm:
-        # prompt = "..."
-        # chat_completion = "..."
-        question = "who am i"
-        answer = "super_user"
-        lf = LongForm(question=question, answer=answer)
-        return lf
-
-
-class GenerateMultipleChoice(Protocol):
-    def generate_mc(self, text: str) -> MultipleChoice: ...
-
-
-class GenerateMultipleChoiceOpenAI:
-    def generate_mc(self, text: str) -> MultipleChoice:
-        # prompt = "..."
-        # chat_completion = "..."
-        question = "who am i"
-        answer = "super_user"
-        mc = MultipleChoice(
-            question=question, answer=answer, choices=["A", "B", "C", "D"]
-        )
-        return mc
-
-
-class GenerateAnswer(Protocol):
-    def generate_answer(self, text: str) -> str: ...
-
-
-class GenerateAnswerOpenAI(GenerateAnswer):
-    def generate_answer(self, text: str) -> str:
-        # prompt = "..."
-        # chat_completion = "..."
-        answer = "super_user"
-        return answer
-
-
-@dataclass
-class ModelFactory(ABC):
+class AIModel(ABC):
     model_config: ModelConfig
+    chat: BaseChatModel
+
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    def get_chat_completion(self, messages: list[SystemMessage | HumanMessage]) -> str:
+        response = self.chat.invoke(messages)
+        return str(response.content)
+
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    async def get_chat_completion_async(
+        self,
+        messages: list[SystemMessage | HumanMessage],
+    ) -> str:
+        response = await self.chat.ainvoke(messages)
+        return str(response.content)
 
     @abstractmethod
-    def create_lf_generator(self) -> GenerateLongForm: ...
+    def generate_longform_qa(self, chunk: str, exam_name: str) -> LongForm: ...
 
     @abstractmethod
-    def create_mc_generator(self) -> GenerateMultipleChoice: ...
+    def generate_multiplechoice_qa(self, chunk: str) -> MultipleChoice: ...
 
     @abstractmethod
-    def create_answer_generator(self) -> GenerateAnswer: ...
-
-
-@dataclass
-class OpenAIFactory(ModelFactory):
-    def create_lf_generator(self) -> GenerateLongForm:
-        return GenerateLongFormOpenAI()
-
-    def create_mc_generator(self) -> GenerateMultipleChoice:
-        return GenerateMultipleChoiceOpenAI()
-
-    def create_answer_generator(self) -> GenerateAnswer:
-        return GenerateAnswerOpenAI()
-
-
-def main():
-    model = OpenAIFactory(model_config=OpenAIConfig())
-    _ = model.create_lf_generator()
-    _ = model.create_mc_generator()
-    _ = model.create_answer_generator()
+    def generate_answer(self, chunk: str, question: str) -> str: ...

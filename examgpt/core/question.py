@@ -1,22 +1,25 @@
-from abc import ABC
-from dataclasses import dataclass
+from langchain_core.pydantic_v1 import BaseModel, Field
 
 
-@dataclass
-class QuestionAnswer(ABC):
-    question: str
-    answer: str
+class LongForm(BaseModel):
+    question: str = Field(description="An exam question with a longform answer")
+    answer: str = Field(description="A longform answer to an exam question")
 
+    # TODO: add validators
 
-@dataclass
-class LongForm(QuestionAnswer):
     def __repr__(self) -> str:
         return f"Question: {self.question}\nAnswer: {self.answer}"
 
 
-@dataclass
-class MultipleChoice(QuestionAnswer):
-    choices: list[str]
+class MultipleChoice(BaseModel):
+    question: str = Field(description="An exam question with a multiple choice answers")
+    answer: str = Field(description="Answer to a multiple choice question")
+    choices: list[str] = Field(
+        description="A list of 4 choices for an exam question, out of which one is corrrect",
+        max_items=4,
+    )
+
+    # TODO: add validators
 
     def __repr__(self) -> str:
         return (

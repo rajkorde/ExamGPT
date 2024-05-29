@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 from examgpt.sources.filetypes.base import Source
 
@@ -13,12 +13,9 @@ class TextChunk:
     def to_dict(self):
         return asdict(self)
 
-
-@dataclass
-class SourceChunks:
-    exam_id: str
-    source_id: str
-    chunks: list[TextChunk]
+    @staticmethod
+    def from_dict(chunk_dict: dict[str, Any]) -> "TextChunk":
+        return TextChunk(**chunk_dict)
 
 
 class Chunker(Protocol):

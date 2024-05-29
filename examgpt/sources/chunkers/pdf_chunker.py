@@ -13,9 +13,9 @@ if TYPE_CHECKING:
 
 # TODO: remove chunk limit.. added for debugging only
 # chunk_limit of 0 means no limits
-# stateless
+# stateless chunker
 class SimplePDFChunker:
-    def __init__(self, chunk_size: int, chunk_limit: int = 0):
+    def __init__(self, chunk_size: int = 2500, chunk_limit: int = 0):
         self.chunk_size = chunk_size
         self.chunk_limit = chunk_limit
         self._elements: list[Element] = list()

@@ -1,18 +1,26 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractstaticmethod
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 if TYPE_CHECKING:
     from examgpt.sources.chunkers.base import Chunker, TextChunk
 
 
+class SourceType(Enum):
+    PDF = "PDF"
+    HTML = "HTML"
+    MARKDOWN = "MARKDOWN"
+
+
 @dataclass
 class Source(ABC):
     location: str
+    type: SourceType
     chunker: Chunker
     chunks: list[TextChunk] = field(default_factory=list)
     id: str = field(default_factory=lambda: str(uuid4()))
@@ -30,12 +38,12 @@ class Source(ABC):
     @abstractmethod
     def create_text(self) -> str: ...
 
+    @abstractmethod
+    def to_dict(self) -> dict[str, Any]: ...
+
+    @staticmethod
+    @abstractmethod
+    def from_dict(source_dict: dict[str, Any]) -> Source: ...
+
     def update_location(self, new_location: str) -> None:
         self.location = new_location
-
-    def to_dict(self):
-        return {
-            "location": self.location,
-            "id": self.id,
-            "chunks": [chunk.to_dict() for chunk in self.chunks],
-        }
