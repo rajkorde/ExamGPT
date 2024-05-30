@@ -32,10 +32,11 @@ class ModelConfig:
         return num_tokens
 
 
-@dataclass
 class AIModel(ABC):
-    model_config: ModelConfig
-    chat: BaseChatModel
+    # defining __init__ in ABC to force sub class to define these instance variables
+    def __init__(self, model_config: ModelConfig, chat: BaseChatModel):
+        self.model_config = model_config
+        self.chat = chat
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def get_chat_completion(self, messages: list[SystemMessage | HumanMessage]) -> str:

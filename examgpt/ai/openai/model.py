@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 
-from langchain.chat_models.openai import ChatOpenAI
 from langchain.output_parsers import PydanticOutputParser
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 
 from examgpt.ai.base import AIModel, ModelConfig
 from examgpt.ai.constants import ModelFamily, ModelName
@@ -18,12 +18,10 @@ class OpenAIConfig(ModelConfig):
     chunk_size: int = 2500
 
 
-@dataclass
 class OpenAIModel(AIModel):
-    model_config: ModelConfig = field(default=OpenAIConfig())
-
-    def __post_init__(self):
-        self.chat = ChatOpenAI(model=str(self.model_config.name))
+    def __init__(self):
+        self.model_config = OpenAIConfig()
+        self.chat = ChatOpenAI(model=str(self.model_config.name.value))
 
     def _context_check(self, chunk: str, exam_name: str) -> bool:
         context_checker_prompt = f"""

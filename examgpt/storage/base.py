@@ -12,6 +12,7 @@ class Storage(ABC):
     @abstractmethod
     def copy(self, sources: list[Source]) -> None: ...
 
+    # TODO: change this to save specific objects
     @abstractmethod
     def save_to_json(self, data: dict[Any, Any], filename: str) -> None: ...
 

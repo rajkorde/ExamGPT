@@ -3,6 +3,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from examgpt.ai.openai.model import OpenAIModel
 from examgpt.core.config import ApplicationSettings
 from examgpt.core.exam import Exam
 
@@ -45,9 +46,15 @@ exam_id = "0329ee78-f01a-4617-8796-914e44b47ad1"
 folder = str(Path(settings.temp_folder) / exam_id)
 storage = FileStorage(folder=folder)
 exam = storage.get_exam(location="chunks.json")
+exam_name = exam.name
 source = exam.sources[0]
 
 chunk = source.chunks[5]
+
+model = OpenAIModel()
+
+response = model.generate_longform_qa(chunk=chunk.text, exam_name=exam_name)
+print(response)
 
 # create exam
 
