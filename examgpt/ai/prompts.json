@@ -1,0 +1,12 @@
+[
+  {
+    "model": "common",
+    "scenario": "LongForm",
+    "prompt": "prompt 1"
+  },
+  {
+    "model": "common",
+    "scenario": "MultipleChoice",
+    "prompt": "prompt 2"
+  }
+]

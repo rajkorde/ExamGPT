@@ -5,6 +5,7 @@ class ModelFamily(Enum):
     OPENAI = "openai"
     OLLAMA = "ollama"
     GOOGLE = "google"
+    DEFAULT = "default"
 
 
 class ModelName(Enum):
@@ -14,3 +15,4 @@ class ModelName(Enum):
     GEMINI_FLASH = "geminiflash"
     LLAMA2 = "llama2"
     LLAMA3 = "llama3"
+    DEFAULT = "default"

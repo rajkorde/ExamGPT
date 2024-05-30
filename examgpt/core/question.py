@@ -1,4 +1,12 @@
+from enum import Enum
+
 from langchain_core.pydantic_v1 import BaseModel, Field
+
+
+class Scenario(Enum):
+    LONGFORM = "long_form"
+    MULTIPLECHOICE = "multiple_choice"
+    ANSWER = "answer"
 
 
 class LongForm(BaseModel):
