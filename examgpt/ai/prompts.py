@@ -26,7 +26,6 @@ class PromptProvider:
             prompts = yaml.safe_load(f)
             # adding type ignore because pylance doesnt work with dataclass_json
             self.prompts = [Prompt.from_dict(prompt) for prompt in prompts]  # type: ignore
-            # self.prompts = prompts
 
     def get_prompt(self, scenario: Scenario, model: ModelName) -> str | None:
         for prompt in self.prompts:
