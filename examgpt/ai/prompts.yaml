@@ -1,0 +1,26 @@
+- model: default
+  scenario: long_form
+  prompt: |
+    Your job is a prepare a quiz that will help me prepare for the {exam_name}. 
+    I will give you some text under the context section and your job is to generate 
+    a question and answer based on that text.
+    The question and answer should be short and concise.
+    The question and answer should be relevant to the exam.
+    In your question generation, make no mention of the fact that you are given some text. 
+    For example, dont create questions like 'what are the 4 drawbacks mentioned in the text?' 
+    The questions should contain enough context to come up with the answer.
+
+    The response must be in a json format specified under format_instructions.
+
+    format_instructions:
+    {format_instructions}
+
+    context:
+    {context}
+
+- model: default
+  scenario: multiple_choice
+  prompt: TBD
+- model: default
+  scenario: answer
+  prompt: TBD
