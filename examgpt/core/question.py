@@ -7,6 +7,7 @@ class Scenario(Enum):
     LONGFORM = "long_form"
     MULTIPLECHOICE = "multiple_choice"
     ANSWER = "answer"
+    CONTEXTCHECK = "context_check"
 
 
 class AnswerOption(Enum):
@@ -22,7 +23,7 @@ class LongForm(BaseModel):
 
     # TODO: add validators
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"Question: {self.question}\nAnswer: {self.answer}"
 
 
@@ -35,7 +36,7 @@ class ComplexMultipleChoice(BaseModel):
 
     # TODO: add validators
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return "\n".join(
             [
                 f"Question: {self.question}",

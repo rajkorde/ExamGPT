@@ -22,8 +22,8 @@
   scenario: multiple_choice
   prompt: |
     Your job is a prepare a multiple choice quiz that will help me prepare for the {exam_name}. 
-    I will give you some text and your job is to generate a multiple choice question and answer 
-    based on the text I provide that would help me prepare for the exam. 
+    I will give you some text under the context section and your job is to generate a multiple choice 
+    question and answer based on the text I provide that would help me prepare for the exam. 
     The number of answer choices should be 4 and should be numbered A, B, C, and D.
     The question and answers should be short and concise.
     The question and answers should be relevant to the exam.
@@ -39,5 +39,30 @@
     context:
     {context}
 - model: default
-  scenario: answer
-  prompt: TBD
+  scenario: context_check
+  prompt: |
+    Your overall goal is to help me prepare for the {exam_name}. 
+
+    Assume that there is a robot that can generate a question and answer pair to help 
+    me practice for the exam if its provided a text paragraph. But this robot doesnt generate 
+    good questions and answers if the provided text is of low quality.
+
+    I will give you some text under the context section, and your job is to respond with True or False 
+    depending on whether the text contains enough meaningful information for the robot to 
+    create a good quality question and answer relevant for the exam. 
+
+    The response must be a boolean.
+
+    Examples of bad text includes:
+    - not enough text to formulate to good quality question and answer
+    - text that contains too many short phrases instead of full english sentences
+    - text that is irrelevant to the exam
+    - text that looks like table of contents
+    - text that looks like information about how to take the exam
+
+    Examples of good text include: 
+    - text that is directly related to questions that will be asked in the the exam
+
+    context:
+    {context}
+    """

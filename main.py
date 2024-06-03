@@ -49,13 +49,12 @@ storage = FileStorage(folder=folder)
 exam = storage.get_exam(location="chunks.json")
 exam_name = exam.name
 source = exam.sources[0]
-
-chunk = source.chunks[27]
-
 model = OpenAIModel()
 
-# response = model.generate_longform_qa(chunk=chunk.text, exam_name=exam_name)
-response = model.generate_multiplechoice_qa(chunk=chunk.text, exam_name=exam_name)
+chunk = source.chunks[1]
+response = model.generate_longform_qa(chunk=chunk.text, exam_name=exam_name)
+# response = model.generate_multiplechoice_qa(chunk=chunk.text, exam_name=exam_name)
+# response = model._context_check(chunk=chunk.text, exam_name=exam_name)
 print(response)
 
 
