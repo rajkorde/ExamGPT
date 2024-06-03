@@ -3,8 +3,9 @@ from pathlib import Path
 
 from loguru import logger
 
-from examgpt.ai.model.llama3 import Llama3Model
-from examgpt.ai.model.openai import OpenAIModel
+from examgpt.ai.base import AIModel_Template
+from examgpt.ai.model.llama import LlamaModel, LlamaProvider
+from examgpt.ai.model.openai import OpenAIProvider
 from examgpt.ai.prompts import PromptProvider
 from examgpt.core.config import ApplicationSettings
 from examgpt.core.exam import Exam
@@ -50,9 +51,11 @@ storage = FileStorage(folder=folder)
 exam = storage.get_exam(location="chunks.json")
 exam_name = exam.name
 source = exam.sources[0]
-model = Llama3Model()
 
-chunk = source.chunks[0]
+model = AIModel_Template(LlamaProvider())
+# model = LlamaModel()
+
+chunk = source.chunks[14]
 # response = model.generate_longform_qa(chunk=chunk.text, exam_name=exam_name)
 response = model.generate_multiplechoice_qa(chunk=chunk.text, exam_name=exam_name)
 # response = model._context_check(chunk=chunk.text, exam_name=exam_name)
