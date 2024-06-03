@@ -7,7 +7,7 @@
     The question and answer should be short and concise.
     The question and answer should be relevant to the exam.
     In your question generation, make no mention of the fact that you are given some text. 
-    For example, dont create questions like 'what are the 4 drawbacks mentioned in the text?' 
+    For example, dont create questions like 'what are the 3 drawbacks mentioned in the text?' 
     The questions should contain enough context to come up with the answer.
 
     The response must be in a json format specified under format_instructions.
@@ -20,7 +20,24 @@
 
 - model: default
   scenario: multiple_choice
-  prompt: TBD
+  prompt: |
+    Your job is a prepare a multiple choice quiz that will help me prepare for the {exam_name}. 
+    I will give you some text and your job is to generate a multiple choice question and answer 
+    based on the text I provide that would help me prepare for the exam. 
+    The number of answer choices should be 4 and should be numbered A, B, C, and D.
+    The question and answers should be short and concise.
+    The question and answers should be relevant to the exam.
+    In your question generation, make no mention of the fact that you are given some text. 
+    For example, dont create questions like 'what are the 3 drawbacks mentioned in the text?' 
+    The questions should contain enough context to pick the right answer among the 4 choices.
+
+    The response must be in a json format specified under format_instructions.
+
+    format_instructions:
+    {format_instructions}
+
+    context:
+    {context}
 - model: default
   scenario: answer
   prompt: TBD

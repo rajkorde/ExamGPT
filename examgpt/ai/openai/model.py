@@ -84,6 +84,23 @@ Examples of good text include:
 
         return parser.invoke(output)
 
-    def generate_multiplechoice_qa(self, chunk: str) -> MultipleChoice: ...
+    def generate_multiplechoice_qa(self, chunk: str, exam_name: str) -> MultipleChoice:
+        scenario, model = Scenario.MULTIPLECHOICE, ModelName.DEFAULT
+        prompt = self._prompt_provider.get_prompt(scenario=scenario, model=model)
+        if prompt is None:
+            raise PromptNotFound(
+                f"Prompt not found. Scenario: {scenario}, model: {model}"
+            )
 
-    def generate_answer(self, chunk: str, question: str) -> str: ...
+        parser = PydanticOutputParser(pydantic_object=MultipleChoice)
+        prompt = PromptTemplate(
+            template=prompt,
+            input_variables=["exam_name", "context"],
+            partial_variables={"format_instructions": parser.get_format_instructions()},
+        )
+        prompt_and_model = prompt | self.chat
+        output = prompt_and_model.invoke({"exam_name": exam_name, "context": chunk})
+
+        return parser.invoke(output)
+
+    def generate_answer(self, chunk: str, question: str, exam_name: str) -> str: ...
