@@ -25,7 +25,7 @@ class OpenAIModel(AIModel):
         self.chat = ChatOpenAI(model=str(self.model_config.name.value))
         self._prompt_provider = PromptProvider()
 
-    def _context_check(self, chunk: str, exam_name: str) -> bool | str:
+    def _context_check(self, chunk: str, exam_name: str) -> bool:
         scenario, model = Scenario.CONTEXTCHECK, ModelName.DEFAULT
         prompt = self._prompt_provider.get_prompt(scenario=scenario, model=model)
         if prompt is None:
