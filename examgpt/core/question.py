@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from langchain_core.pydantic_v1 import BaseModel, Field
 
@@ -93,3 +93,22 @@ class QACollection:
     multiple_choice_qa: Optional[list[MultipleChoiceEnhanced]] = field(
         default_factory=list
     )
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    def __str__(self) -> str:
+        return "\n".join(
+            [
+                f"Exam_id: {self.exam_id}",
+                f"Source_id: {self.source_id}",
+                "Long Form QA:\n--------------",
+                "\n".join([str(qa) for qa in self.long_form_qa])
+                if self.long_form_qa
+                else "",
+                "Multiple Choice QA:\n------------------",
+                "\n".join([str(qa) for qa in self.multiple_choice_qa])
+                if self.multiple_choice_qa
+                else "",
+            ]
+        )

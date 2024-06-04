@@ -82,6 +82,7 @@ class Source(ABC):
             if scenario == Scenario.LONGFORM:
                 longform_qas: list[LongForm] = []
                 for chunk in self.chunks:
+                    logger.info(f"Generating long form QA for chunk: {chunk.id}")
                     try:
                         qa = model.generate_longform_qa(chunk, exam_name)
                         longform_qas.append(qa)
@@ -92,6 +93,7 @@ class Source(ABC):
             elif scenario == Scenario.MULTIPLECHOICE:
                 multiplechoice_qas: list[MultipleChoice] = []
                 for chunk in self.chunks:
+                    logger.info(f"Generating multiple choice QA for chunk: {chunk.id}")
                     try:
                         qa = model.generate_multiplechoice_qa(chunk, exam_name)
                         multiplechoice_qas.append(qa)
@@ -101,4 +103,4 @@ class Source(ABC):
             else:
                 raise UnSupportedScenario(str(scenario))
 
-            return QACollection(**args)
+        return QACollection(**args)

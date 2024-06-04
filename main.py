@@ -55,6 +55,7 @@ source.limit_chunks()
 
 model = AIModel(model_provider=OpenAIProvider())
 
+
 # chunk = source.chunks[14]
 # response = model.generate_longform_qa(chunk=chunk.text, exam_name=exam_name)
 # response = model.generate_multiplechoice_qa(chunk=chunk, exam_name=exam_name)
@@ -63,6 +64,9 @@ model = AIModel(model_provider=OpenAIProvider())
 
 qa_collection = source.get_qa_collection(exam_id, exam_name, model)
 print(qa_collection)
+
+qa_collection_dict = qa_collection.to_dict()
+storage.save_to_json(data=qa_collection_dict, filename="answers.json")
 
 
 # create exam
