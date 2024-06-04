@@ -65,8 +65,7 @@ model = AIModel(model_provider=OpenAIProvider())
 qa_collection = source.get_qa_collection(exam_id, exam_name, model)
 print(qa_collection)
 
-qa_collection_dict = qa_collection.to_dict()
-storage.save_to_json(data=qa_collection_dict, filename="answers.json")
+storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
 
 
 # create exam

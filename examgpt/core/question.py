@@ -95,7 +95,14 @@ class QACollection:
     )
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        qa_collection_dict = asdict(self)
+        if self.long_form_qa:
+            qa_collection_dict["long_form_qa"] = [qa.dict() for qa in self.long_form_qa]
+        if self.multiple_choice_qa:
+            qa_collection_dict["multiple_choice_qa"] = [
+                qa.dict() for qa in self.multiple_choice_qa
+            ]
+        return qa_collection_dict
 
     def __str__(self) -> str:
         return "\n".join(
