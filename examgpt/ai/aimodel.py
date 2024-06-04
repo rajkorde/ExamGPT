@@ -68,8 +68,6 @@ class AIModel:
     def generate_longform_qa(self, chunk: TextChunk, exam_name: str) -> LongForm:
         scenario, model = Scenario.LONGFORM, self.model_name
 
-        # Typically not a good practice to swallow an exception,
-        # but using it here to avoid retry efforts
         if not self._context_check(chunk=chunk.text, exam_name=exam_name):
             raise NotEnoughInformationInContext(chunk.id)
 
@@ -93,6 +91,12 @@ class AIModel:
 
         return parser.invoke(output)
 
+    @retry(
+        wait=wait_random_exponential(min=1, max=60),
+        stop=stop_after_attempt(3),
+        retry=retry_if_not_exception_type(NotEnoughInformationInContext),
+        reraise=True,
+    )
     def generate_multiplechoice_qa(
         self, chunk: TextChunk, exam_name: str
     ) -> MultipleChoice:
