@@ -1,7 +1,14 @@
 from langchain.output_parsers import BooleanOutputParser, PydanticOutputParser
+from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import PromptTemplate
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from loguru import logger
+from tenacity import (
+    retry,
+    retry_if_not_exception_type,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from examgpt.ai.base import ModelConfig, ModelProvider
 from examgpt.ai.prompts import PromptProvider
@@ -52,9 +59,17 @@ class AIModel:
 
         return output
 
+    @retry(
+        wait=wait_random_exponential(min=1, max=60),
+        stop=stop_after_attempt(3),
+        retry=retry_if_not_exception_type(NotEnoughInformationInContext),
+        reraise=True,
+    )
     def generate_longform_qa(self, chunk: TextChunk, exam_name: str) -> LongForm:
         scenario, model = Scenario.LONGFORM, self.model_name
 
+        # Typically not a good practice to swallow an exception,
+        # but using it here to avoid retry efforts
         if not self._context_check(chunk=chunk.text, exam_name=exam_name):
             raise NotEnoughInformationInContext(chunk.id)
 
@@ -71,6 +86,7 @@ class AIModel:
             partial_variables={"format_instructions": parser.get_format_instructions()},
         )
         prompt_and_model = prompt | self.chat
+
         output = prompt_and_model.invoke(
             {"exam_name": exam_name, "context": chunk.text}
         )

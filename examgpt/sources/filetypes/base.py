@@ -88,6 +88,7 @@ class Source(ABC):
                         longform_qas.append(qa)
                     except NotEnoughInformationInContext as e:
                         logger.warning(e.message)
+                        continue
 
                 args["long_form_qa"] = longform_qas
             elif scenario == Scenario.MULTIPLECHOICE:
@@ -100,6 +101,7 @@ class Source(ABC):
                     except NotEnoughInformationInContext as e:
                         logger.warning(e.message)
                 args["multiple_choice_qa"] = multiplechoice_qas
+                continue
             else:
                 raise UnSupportedScenario(str(scenario))
 
