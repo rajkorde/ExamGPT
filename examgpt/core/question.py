@@ -1,4 +1,6 @@
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Optional
 
 from langchain_core.pydantic_v1 import BaseModel, Field
 
@@ -27,6 +29,7 @@ class LongForm(BaseModel):
         return f"Question: {self.question}\nAnswer: {self.answer}"
 
 
+# TODO: Deprecate this. Results in too many errors
 class ComplexMultipleChoice(BaseModel):
     question: str = Field(description="An exam question with a multiple choice answers")
     answer: AnswerOption = Field(description="Answer to a multiple choice question")
@@ -78,5 +81,15 @@ class LongformEnhanced(LongForm):
     chunk_id: str
 
 
-class MultipleChoiceEnhanced(BaseModel):
+class MultipleChoiceEnhanced(MultipleChoice):
     chunk_id: str
+
+
+@dataclass
+class QACollection:
+    exam_id: str
+    source_id: str
+    long_form_qa: Optional[list[LongformEnhanced]] = field(default_factory=list)
+    multiple_choice_qa: Optional[list[MultipleChoiceEnhanced]] = field(
+        default_factory=list
+    )

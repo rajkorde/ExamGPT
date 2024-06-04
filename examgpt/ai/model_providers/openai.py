@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from langchain_openai import ChatOpenAI
 
-from examgpt.ai.base import ModelConfig
+from examgpt.ai.base import ModelConfig, ModelProvider
 from examgpt.ai.constants import ModelFamily, ModelName
 
 
@@ -14,9 +14,9 @@ class OpenAIConfig(ModelConfig):
     chunk_size: int = 2500
 
 
-class OpenAIProvider:
-    def __init__(self):
-        self.model_config = OpenAIConfig()
+class OpenAIProvider(ModelProvider):
+    def __init__(self, model_config: ModelConfig = OpenAIConfig()):
+        self.model_config = model_config
         self.chat = ChatOpenAI(model=str(self.model_config.name.value))
 
     def get_chat_model(self) -> ChatOpenAI:
