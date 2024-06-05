@@ -1,8 +1,6 @@
 from langchain.output_parsers import BooleanOutputParser, PydanticOutputParser
-from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.prompts import PromptTemplate
-from loguru import logger
 from tenacity import (
     retry,
     retry_if_not_exception_type,
