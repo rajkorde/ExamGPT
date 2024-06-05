@@ -40,3 +40,11 @@ class UnSupportedScenario(BaseException):
     def __init__(self, scenario_name: str):
         message = f"Unsupported scenario for QA generation: {scenario_name}"
         super().__init__(message=message)
+
+
+class UndefinedCheckpointPath(BaseException):
+    """Raised when trying to checkpoint some data without defining checkpoint file first"""
+
+    def __init__(self):
+        message = "Undefined checkpoint file. Call the CheckpointService() first to set the checkpoint file"
+        super().__init__(message=message)

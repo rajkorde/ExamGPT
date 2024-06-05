@@ -11,6 +11,7 @@ class ApplicationSettings(BaseSettings):
     TG_BOT_TOKEN: str
     MODEL_FAMILY: str
     MODEL_NAME: str
+    GOOGLE_API_KEY: str
     log_level: str = Field(default="INFO")
     temp_folder: str = Field(default="temp")
 

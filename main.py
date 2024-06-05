@@ -14,6 +14,7 @@ from examgpt.core.question import QACollection
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.pdf import PDFFile
 from examgpt.storage.files import FileStorage
+from examgpt.utils.checkpoint import CheckpointService
 
 settings = ApplicationSettings()  # pyright: ignore
 
@@ -48,10 +49,11 @@ settings = ApplicationSettings()  # pyright: ignore
 exam_id = "0329ee78-f01a-4617-8796-914e44b47ad1"
 folder = str(Path(settings.temp_folder) / exam_id)
 storage = FileStorage(folder=folder)
+CheckpointService(folder=folder)
 exam = storage.get_exam(location="chunks.json")
 exam_name = exam.name
 source = exam.sources[0]
-source.limit_chunks()
+# source.limit_chunks()
 
 model = AIModel(model_provider=OpenAIProvider())
 
@@ -62,7 +64,8 @@ model = AIModel(model_provider=OpenAIProvider())
 # response = model._context_check(chunk=chunk.text, exam_name=exam_name)
 # print(response)
 
-qa_collection = source.get_qa_collection(exam_id, exam_name, model)
+# qa_collection = source.get_qa_collection(exam_id, exam_name, model)
+qa_collection = source.test_checkpoint_test(exam_id, exam_name, model)
 print(qa_collection)
 
 storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
