@@ -70,6 +70,7 @@ class Source(ABC):
     def limit_chunks(self, n: int = 5) -> None:
         self.chunks = self.chunks[:n]
 
+    # TODO: this code is too complicated. refactor it.
     def get_qa_collection(
         self,
         exam_id: str,
@@ -87,6 +88,7 @@ class Source(ABC):
         args = {} if data is None else data
         args["exam_id"] = exam_id
         args["source_id"] = self.id
+        total_chunks = len(self.chunks)
 
         for scenario in scenarios:
             if scenario == Scenario.LONGFORM:
@@ -96,12 +98,17 @@ class Source(ABC):
                 if "long_form_qa" in args:
                     longform_qas = args["long_form_qa"]
                     completed_chunks = [qa.chunk_id for qa in longform_qas]
+                    logger.info(
+                        f"Recovered {len(completed_chunks)}/{total_chunks} Longform QAs from checkpoint."
+                    )
 
-                for chunk in self.chunks:
+                for i, chunk in enumerate(self.chunks):
                     if chunk.id in completed_chunks:
                         continue
 
-                    logger.info(f"Generating long form QA for chunk: {chunk.id}")
+                    logger.info(
+                        f"Generating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
+                    )
                     try:
                         qa = model.generate_longform_qa(chunk, exam_name)
                         qae = LongformEnhanced(**qa.dict(), chunk_id=chunk.id)
@@ -122,12 +129,17 @@ class Source(ABC):
                 if "multiple_choice_qa" in args:
                     multiplechoice_qas = args["multiple_choice_qa"]
                     completed_chunks = [qa.chunk_id for qa in multiplechoice_qas]
+                    logger.info(
+                        f"Recovered {len(completed_chunks)}/{total_chunks} Multiple Choice QAs from checkpoint."
+                    )
 
-                for chunk in self.chunks:
+                for i, chunk in enumerate(self.chunks):
                     if chunk.id in completed_chunks:
                         continue
 
-                    logger.info(f"Generating multiple choice QA for chunk: {chunk.id}")
+                    logger.info(
+                        f"Generating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
+                    )
                     try:
                         qa = model.generate_multiplechoice_qa(chunk, exam_name)
                         qae = MultipleChoiceEnhanced(**qa.dict(), chunk_id=chunk.id)
@@ -146,6 +158,7 @@ class Source(ABC):
 
         return QACollection(**args)
 
+    # TODO: Delete this. Was developed only for testing.
     def test_checkpoint_test(
         self,
         exam_id: str,

@@ -1,36 +1,8 @@
 import pickle
 from pathlib import Path
-from typing import Any, Optional
-
-from loguru import logger
+from typing import Optional
 
 from examgpt.core.exceptions import UndefinedCheckpointPath
-
-# class CheckpointService:
-#     def __init__(self, checkpoint_file: str = "checkpoint.pkl"):
-#         self.checkpoint_file = Path(checkpoint_file)
-
-#     def save_checkpoint(self, data):
-#         with self.checkpoint_file.open("wb") as f:
-#             pickle.dump(data, f)
-
-#     def load_checkpoint(self):
-#         if self.checkpoint_file.exists():
-#             with self.checkpoint_file.open("rb") as f:
-#                 return pickle.load(f)
-#         return None
-
-#     def checkpoint(self, func):
-#         def wrapper(*args, **kwargs):
-#             checkpoint_data = self.load_checkpoint()
-#             if checkpoint_data:
-#                 logger.info("Resuming from last checkpoint...")
-#                 return checkpoint_data
-#             result = func(*args, **args)
-#             self.save_checkpoint(result)
-#             return result
-
-#         return wrapper
 
 
 class CheckpointService:

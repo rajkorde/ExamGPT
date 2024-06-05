@@ -1,7 +1,9 @@
 # from examgpt.ai.models.openai import OpenAIConfig
+import pickle
 from pathlib import Path
 
 from loguru import logger
+from tenacity import retry, stop_after_attempt
 
 from examgpt.ai.aimodel import AIModel
 from examgpt.ai.model_providers.llama import LlamaProvider
@@ -64,9 +66,23 @@ model = AIModel(model_provider=OpenAIProvider())
 # response = model._context_check(chunk=chunk.text, exam_name=exam_name)
 # print(response)
 
+
 # qa_collection = source.get_qa_collection(exam_id, exam_name, model)
-qa_collection = source.test_checkpoint_test(exam_id, exam_name, model)
+@retry(stop=stop_after_attempt(10))
+def get_qa_collection(exam_id: str, exam_name: str, model: AIModel):
+    qa_collection = source.get_qa_collection(exam_id, exam_name, model)
+    return qa_collection
+
+
+qa_collection = get_qa_collection(exam_id, exam_name, model)
 print(qa_collection)
+
+
+d = pickle.load(
+    Path("temp/0329ee78-f01a-4617-8796-914e44b47ad1/checkpoints/checkpoint.pkl").open(
+        "rb"
+    )
+)
 
 storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
 

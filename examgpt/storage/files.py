@@ -32,13 +32,13 @@ class FileStorage(Storage):
 
     def save_to_json(self, data: dict[Any, Any], filename: str) -> None:
         filename_with_path = f"{self.folder}/{filename}"
-        logger.info(f"Saving chunks to {filename_with_path}")
+        logger.info(f"Saving data to {filename_with_path}")
         with open(filename_with_path, "w") as f:
             json.dump(data, f, indent=4)
 
     def get_exam(self, location: str) -> Exam:
         filename_with_path = f"{self.folder}/{location}"
-        logger.info(f"Saving chunks to {filename_with_path}")
+        logger.info(f"Getting data from {filename_with_path}")
         with open(filename_with_path, "r") as f:
             data = json.load(f)
         return Exam.from_dict(data)
