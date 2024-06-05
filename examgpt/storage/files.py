@@ -7,6 +7,7 @@ from typing import Any
 from loguru import logger
 
 from examgpt.core.exam import Exam
+from examgpt.core.question import QACollection
 from examgpt.sources.filetypes.base import Source
 from examgpt.storage.base import Storage
 
@@ -42,3 +43,10 @@ class FileStorage(Storage):
         with open(filename_with_path, "r") as f:
             data = json.load(f)
         return Exam.from_dict(data)
+
+    def get_qa_collection(self, location: str) -> QACollection:
+        filename_with_path = f"{self.folder}/{location}"
+        logger.info(f"Getting data from {filename_with_path}")
+        with open(filename_with_path, "r") as f:
+            data = json.load(f)
+        return QACollection.from_dict(data)

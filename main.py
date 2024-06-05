@@ -86,6 +86,7 @@ d = pickle.load(
 
 storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
 
+qac = storage.get_qa_collection("answers.json")
 
 # create exam
 

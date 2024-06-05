@@ -50,7 +50,6 @@ class ComplexMultipleChoice(BaseModel):
         )
 
 
-# TODO: Pick between ComplexMultipleChoice and MultipleChoice
 class MultipleChoice(BaseModel):
     question: str = Field(description="An exam question with a multiple choice answers")
     answer: str = Field(
@@ -85,6 +84,8 @@ class MultipleChoiceEnhanced(MultipleChoice):
     chunk_id: str
 
 
+# TODO: this is not optimal implementation. Use strategy pattern to make qa collection part of source
+# and Exam class should have access to these as well.
 @dataclass
 class QACollection:
     exam_id: str
@@ -103,6 +104,20 @@ class QACollection:
                 qa.dict() for qa in self.multiple_choice_qa
             ]
         return qa_collection_dict
+
+    @staticmethod
+    def from_dict(qa_collection_dict: dict[str, Any]) -> "QACollection":
+        return QACollection(
+            exam_id=qa_collection_dict["exam_id"],
+            source_id=qa_collection_dict["source_id"],
+            long_form_qa=[
+                LongformEnhanced(**qa) for qa in qa_collection_dict["long_form_qa"]
+            ],
+            multiple_choice_qa=[
+                MultipleChoiceEnhanced(**qa)
+                for qa in qa_collection_dict["multiple_choice_qa"]
+            ],
+        )
 
     def __str__(self) -> str:
         return "\n".join(
