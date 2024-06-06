@@ -1,9 +1,15 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any
 
 from examgpt.core.exam import Exam
 from examgpt.sources.filetypes.base import Source
+
+
+class StorageType(Enum):
+    FILE = "file"
+    CLOUD = "cloud"
 
 
 # TODO: This should not be a data class, make it a protocol
