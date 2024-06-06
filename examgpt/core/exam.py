@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar
 from uuid import uuid4
 
+# Ignoring PylanceReportMissingTypeStubs for codenamize package
+from codenamize import codenamize  # type: ignore
+
 from examgpt.sources.filetypes.base import Source, SourceType
 from examgpt.sources.filetypes.pdf import PDFFile
 
@@ -11,7 +14,7 @@ class Exam:
     name: str
     sources: list[Source] = field(default_factory=list)
     # TODO: Replace with friendly id
-    exam_id: str = field(default_factory=lambda: str(uuid4()))
+    exam_id: str = field(default_factory=lambda: str(codenamize(uuid4())))
     post_event: bool = False
 
     _source_mapping: ClassVar[dict[str, Any]] = {SourceType.PDF.value: PDFFile}

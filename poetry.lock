@@ -560,6 +560,21 @@ files = [
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
+name = "codenamize"
+version = "1.2.3"
+description = "Generate consistent easier-to-remember names from strings and numbers"
+optional = false
+python-versions = "*"
+files = [
+    {file = "codenamize-1.2.3-py3-none-any.whl", hash = "sha256:b6ede2d212e4416d4d56364537e1458aa8cf98d46d431afd093cd98cd152521f"},
+    {file = "codenamize-1.2.3.tar.gz", hash = "sha256:31a14127ef557d48e084805bfef693de6eba5373613e4e9e4b2a4ff093a7b2dc"},
+]
+
+[package.dependencies]
+six = "*"
+wheel = "*"
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -6163,6 +6178,20 @@ optional = ["python-socks", "wsaccel"]
 test = ["websockets"]
 
 [[package]]
+name = "wheel"
+version = "0.43.0"
+description = "A built-package format for Python"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "wheel-0.43.0-py3-none-any.whl", hash = "sha256:55c570405f142630c6b9f72fe09d9b67cf1477fcf543ae5b8dcb1f5b7377da81"},
+    {file = "wheel-0.43.0.tar.gz", hash = "sha256:465ef92c69fa5c5da2d1cf8ac40559a8c940886afcef87dcf14b9470862f1d85"},
+]
+
+[package.extras]
+test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
+
+[[package]]
 name = "win32-setctime"
 version = "1.1.0"
 description = "A small Python utility to set file creation time on Windows"
@@ -6388,4 +6417,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "f9a10c9f2c82df319f7a4733aace0970ea6ae969e2d42fb8e6d972639edd2693"
+content-hash = "152a58b3feb5092d8528dd41d0de3bde1f1226b0f70460ffe87601f4083aad29"

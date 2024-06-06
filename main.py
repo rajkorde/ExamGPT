@@ -1,7 +1,9 @@
 # from examgpt.ai.models.openai import OpenAIConfig
 import pickle
 from pathlib import Path
+from uuid import uuid4
 
+from codenamize import codenamize  # type: ignore
 from loguru import logger
 from tenacity import retry, stop_after_attempt
 
@@ -48,16 +50,16 @@ settings = ApplicationSettings()  # pyright: ignore
 
 ## Create an exam object
 
-exam_id = "0329ee78-f01a-4617-8796-914e44b47ad1"
-folder = str(Path(settings.temp_folder) / exam_id)
-storage = FileStorage(folder=folder)
-CheckpointService(folder=folder)
-exam = storage.get_exam(location="chunks.json")
-exam_name = exam.name
-source = exam.sources[0]
-# source.limit_chunks()
+# exam_id = "0329ee78-f01a-4617-8796-914e44b47ad1"
+# folder = str(Path(settings.temp_folder) / exam_id)
+# storage = FileStorage(folder=folder)
+# CheckpointService(folder=folder)
+# exam = storage.get_exam(location="chunks.json")
+# exam_name = exam.name
+# source = exam.sources[0]
+# # source.limit_chunks()
 
-model = AIModel(model_provider=OpenAIProvider())
+# model = AIModel(model_provider=OpenAIProvider())
 
 
 # chunk = source.chunks[14]
@@ -68,25 +70,25 @@ model = AIModel(model_provider=OpenAIProvider())
 
 
 # qa_collection = source.get_qa_collection(exam_id, exam_name, model)
-@retry(stop=stop_after_attempt(10))
-def get_qa_collection(exam_id: str, exam_name: str, model: AIModel):
-    qa_collection = source.get_qa_collection(exam_id, exam_name, model)
-    return qa_collection
+# @retry(stop=stop_after_attempt(10))
+# def get_qa_collection(exam_id: str, exam_name: str, model: AIModel):
+#     qa_collection = source.get_qa_collection(exam_id, exam_name, model)
+#     return qa_collection
 
 
-qa_collection = get_qa_collection(exam_id, exam_name, model)
-print(qa_collection)
+# qa_collection = get_qa_collection(exam_id, exam_name, model)
+# print(qa_collection)
 
 
-d = pickle.load(
-    Path("temp/0329ee78-f01a-4617-8796-914e44b47ad1/checkpoints/checkpoint.pkl").open(
-        "rb"
-    )
-)
+# d = pickle.load(
+#     Path("temp/0329ee78-f01a-4617-8796-914e44b47ad1/checkpoints/checkpoint.pkl").open(
+#         "rb"
+#     )
+# )
 
-storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
+# storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
 
-qac = storage.get_qa_collection("answers.json")
+# qac = storage.get_qa_collection("answers.json")
 
 # create exam
 
@@ -98,3 +100,7 @@ qac = storage.get_qa_collection("answers.json")
 # print(model.estimate_cost(token_count))
 
 # start_chat(settings.TG_BOT_TOKEN)
+
+# codenamize test
+
+print(codenamize(str(uuid4())))
