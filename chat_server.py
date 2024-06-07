@@ -151,6 +151,70 @@ async def receive_poll_answer(
         parse_mode=ParseMode.HTML,
     )
 
+    answered_poll["answers"] += 1
+    if answered_poll["answers"] == TOTAL_VOTER_COUNT:
+        await context.bot.stop_poll(
+            answered_poll["chat_id"], answered_poll["message_id"]
+        )
+
+
+async def receive_poll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    "On receiving polls, reply to it by closed poll copying the received poll"
+    actual_poll = update.effective_message.poll
+    log(actual_poll)
+    # Only need to set the question and options, since all other parameters don't matter for
+    # a closed poll
+    await update.effective_message.reply_poll(
+        question=actual_poll.question,
+        options=[o.text for o in actual_poll.options],
+        is_closed=True,
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+
+async def quiz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    "send a predefined poll"
+    questions = ["1", "2", "4", "20"]
+    message = await update.effective_message.reply_poll(
+        question="How many eggs do you need for a cake",
+        options=questions,
+        type=Poll.QUIZ,
+        correct_option_id=2,
+    )
+
+    log(message)
+    payload = {
+        message.poll.id: {
+            "chat_id": update.effective_chat.id,
+            "message_id": message.id,
+        }
+    }
+
+    context.bot_data.update(payload)
+
+
+async def receive_quiz_answer(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    if update.poll.is_closed:
+        return
+    if update.poll.total_voter_count == TOTAL_VOTER_COUNT:
+        try:
+            quiz_data = context.bot_data[update.poll.id]
+        except KeyError:
+            return
+        await context.bot.stop_poll(quiz_data["chat_id"], quiz_data["message_id"])
+
+
+async def preview(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Ask user to create a poll and display a preview of it"""
+    # using this without a type lets the user chooses what he wants (quiz or poll)
+    button = [[KeyboardButton("Click", request_poll=KeyboardButtonPollType())]]
+    message = "Press the button to let the bot generate a preview for your poll"
+    await update.effective_message.reply_text(
+        message, reply_markup=ReplyKeyboardMarkup(button, one_time_keyboard=True)
+    )
+
 
 async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Display a help message"""
@@ -168,7 +232,7 @@ def main() -> None:
     application.add_handler(CommandHandler("preview", preview))
     application.add_handler(CommandHandler("help", help_handler))
     application.add_handler(MessageHandler(filters.POLL, receive_poll))
-    application.add_handler(PollAnswerHandler(receive_poll))
+    application.add_handler(PollAnswerHandler(receive_poll_answer))
     application.add_handler(PollHandler(receive_quiz_answer))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
