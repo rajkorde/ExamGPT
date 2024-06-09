@@ -83,11 +83,6 @@ def start_chat(token: str) -> None:
 TOTAL_VOTER_COUNT = 3
 
 
-def log(o: Any) -> None:
-    logger.info(f"{o=}")
-    logger.info(type(o))
-
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Inform user about what this bot can do"""
     await update.message.reply_text(
@@ -123,9 +118,9 @@ async def receive_poll_answer(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     answer = update.poll_answer
-    log(answer)
+    logger.info(answer)
     answered_poll = context.bot_data[answer.poll_id]
-    log(answered_poll)
+    logger.info(answered_poll)
 
     try:
         questions = answered_poll["questions"]
@@ -134,7 +129,7 @@ async def receive_poll_answer(
         return
 
     selected_options = answer.option_ids
-    log(selected_options)
+    logger.info(selected_options)
     answer_string = ""
 
     for question_id in selected_options:
@@ -143,7 +138,7 @@ async def receive_poll_answer(
         else:
             answer_string += questions[question_id]
 
-    log(answer_string)
+    logger.info(answer_string)
 
     await context.bot.send_message(
         answered_poll["chat_id"],
@@ -161,7 +156,7 @@ async def receive_poll_answer(
 async def receive_poll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     "On receiving polls, reply to it by closed poll copying the received poll"
     actual_poll = update.effective_message.poll
-    log(actual_poll)
+    logger.info(actual_poll)
     # Only need to set the question and options, since all other parameters don't matter for
     # a closed poll
     await update.effective_message.reply_poll(
@@ -176,13 +171,13 @@ async def quiz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     "send a predefined poll"
     questions = ["1", "2", "4", "20"]
     message = await update.effective_message.reply_poll(
-        question="How many eggs do you need for a cake",
+        question="How many eggs do you need for a cake?",
         options=questions,
         type=Poll.QUIZ,
         correct_option_id=2,
     )
 
-    log(message)
+    logger.info(message)
     payload = {
         message.poll.id: {
             "chat_id": update.effective_chat.id,
@@ -196,6 +191,7 @@ async def quiz(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def receive_quiz_answer(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
+    logger.info(update.poll)
     if update.poll.is_closed:
         return
     if update.poll.total_voter_count == TOTAL_VOTER_COUNT:
