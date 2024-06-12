@@ -153,7 +153,7 @@ async def ask_question_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         options=options,
         type=Poll.QUIZ,
         correct_option_id=2,
-        is_anonymous=False,
+        is_anonymous=True,
     )
 
     chat_payload["asked_question_count"] += 1
@@ -174,6 +174,8 @@ async def handle_answer_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """Handle answer to the poll"""
 
     logger.info("in answer handler")
+    logger.info(update)
+    logger.info(update.poll)
     if update.poll.is_closed:
         return
     poll = update.poll
@@ -187,8 +189,8 @@ async def handle_answer_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     chat_id = poll_data["chat_id"]
     message_id = poll_data["message_id"]
 
-    user_answer = update.poll_answer.to_json()
-    correct_answer = update.poll_answer.option_ids
+    user_answer = [option.text for option in poll.options if option.voter_count > 0][0]
+    correct_answer = poll.correct_option_id
 
     logger.info(f"{user_answer=}")
     logger.info(f"{correct_answer=}")
@@ -224,8 +226,8 @@ def main() -> None:
         states={
             QUIZZING: [
                 MessageHandler(
-                    filters.Regex("^Start|A|B|C|D$")
-                    | (filters.TEXT & ~(filters.COMMAND)),
+                    #                    filters.Regex("^Start|A|B|C|D$")
+                    filters.POLL | (filters.TEXT & ~(filters.COMMAND)),
                     ask_question_mc,
                 )
             ]
@@ -239,6 +241,7 @@ def main() -> None:
     application.add_handler(mc_handler)
     application.add_handler(PollHandler(handle_answer_mc))
 
+    logger.info("Starting App")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
