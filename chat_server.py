@@ -18,6 +18,7 @@ from telegram.ext import (
 from examgpt.frontend.chatbot.chat_helper import ChatHelper
 
 chat = ChatHelper()
+chat.initialize("0329ee78-f01a-4617-8796-914e44b47ad1")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -134,19 +135,34 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             chat_payload["correct_answer_count"] += 1
             context.bot_data.update({chat_id: chat_payload})
         else:
-            await update.message.reply_text("Incorrect!")
+            await update.message.reply_text(
+                f"Incorrect! The correct answer is {last_answer}"
+            )
 
     if chat_payload["asked_question_count"] == chat_payload["total_question_count"]:
         return await completed_mc(update, context)
 
-    question = "When was I born\nA: 1975\nB: 1976\nC: 1974\nD: 1976\n"
+    # question = "When was I born\nA: 1975\nB: 1976\nC: 1974\nD: 1976\n"
+    # await update.message.reply_text(
+    #     question,
+    #     reply_markup=answer_markup_mc,
+    # )
+
+    multiple_choice_qa = chat.multiple_choice()
+    if not multiple_choice_qa:
+        logger.error("No multiple choice questions found.")
+        return await error(update, context)
+
+    question = multiple_choice_qa.question
+    choices = "\n".join([f"{k}: {v}" for k, v in multiple_choice_qa.choices.items()])
+
     await update.message.reply_text(
-        question,
+        f"{question}\n{choices}",
         reply_markup=answer_markup_mc,
     )
 
     chat_payload["asked_question_count"] += 1
-    chat_payload["last_answer"] = "A"
+    chat_payload["last_answer"] = multiple_choice_qa.answer
 
     context.bot_data.update({chat_id: chat_payload})
 
@@ -169,6 +185,13 @@ async def completed_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def cancel_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_text = "Quiz Cancelled."
+    await update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
+
+    return ConversationHandler.END
+
+
+async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    reply_text = "Something went wrong. Please try again."
     await update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END
