@@ -1,6 +1,8 @@
 import os
 import random
 from asyncio import CancelledError
+from email import message
+from tracemalloc import start
 from typing import Any, Dict
 
 from loguru import logger
@@ -90,7 +92,7 @@ async def exam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 QUIZZING = 1
 
 answer_keyboard_mc = [["A", "B", "C", "D"]]
-start_keyboard_mc = [["Start"]]
+start_keyboard_mc = [["Start", "Cancel"]]
 answer_markup_mc = ReplyKeyboardMarkup(answer_keyboard_mc, one_time_keyboard=True)
 start_markup_mc = ReplyKeyboardMarkup(start_keyboard_mc, one_time_keyboard=True)
 
@@ -108,6 +110,7 @@ async def start_chat_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
             "total_question_count": question_count,
             "asked_question_count": 0,
             "correct_answer_count": 0,
+            "last_answer": "X",
         }
     }
     # Keep chat related data under chat_id key
@@ -134,77 +137,90 @@ async def ask_question_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     # try catch needed here
     chat_payload = context.bot_data[chat_id]
     logger.info(f"{chat_payload=}")
+    last_answer = chat_payload["last_answer"]
+    user_answer = update.effective_message.text
+    logger.info(f"{last_answer}")
+
+    if not last_answer == "X":
+        if user_answer == last_answer:
+            await update.message.reply_text("Correct!")
+            chat_payload["correct_answer_count"] += 1
+            context.bot_data.update({chat_id: chat_payload})
+        else:
+            await update.message.reply_text("Incorrect!")
+
+    logger.info(f"last message: {update.effective_message.text}")
 
     if chat_payload["asked_question_count"] == chat_payload["total_question_count"]:
         return await completed_mc(update, context)
 
-    # question = "When was I born\nA: 1975\nB: 1976\nC: 1974\nD: 1976\n"
-    # await update.message.reply_text(
-    #     question,
-    #     # reply_markup=ReplyKeyboardMarkup.from_button(
-    #     #     KeyboardButton("Start")
-    #     # ),
-    #     reply_markup=answer_markup_mc,
-    # )
-
-    options = ["1", "2", "4", "20"]
-    message = await update.effective_message.reply_poll(
-        "How many eggs do you need for a cake?",
-        options=options,
-        type=Poll.QUIZ,
-        correct_option_id=2,
-        is_anonymous=True,
+    question = "When was I born\nA: 1975\nB: 1976\nC: 1974\nD: 1976\n"
+    await update.message.reply_text(
+        question,
+        reply_markup=answer_markup_mc,
     )
 
     chat_payload["asked_question_count"] += 1
+    chat_payload["last_answer"] = "A"
 
-    # Keep chat related data under chat_id key
     context.bot_data.update({chat_id: chat_payload})
-
-    # Keep poll related data under poll id key
-    context.bot_data[message.poll.id] = {
-        "chat_id": update.effective_chat.id,
-        "message_id": message.message_id,
-    }
 
     return QUIZZING
 
 
-async def handle_answer_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle answer to the poll"""
+# async def poll_handler_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#     """Handle answer to the poll"""
 
-    logger.info("in answer handler")
-    logger.info(update)
-    logger.info(update.poll)
-    if update.poll.is_closed:
-        return
-    poll = update.poll
-    poll_id = poll.id
+#     logger.info(update)
+#     logger.info(update.poll)
+#     if update.poll.is_closed:
+#         return
+#     poll = update.poll
+#     poll_id = poll.id
 
-    # need try catch here
-    poll_data = context.bot_data.get(poll_id)
-    if not poll_data:
-        raise Exception("Could not find poll data")
+#     # need try catch here
+#     poll_data = context.bot_data.get(poll_id)
+#     if not poll_data:
+#         raise Exception("Could not find poll data")
 
-    chat_id = poll_data["chat_id"]
-    message_id = poll_data["message_id"]
+#     chat_id = poll_data["chat_id"]
+#     message_id = poll_data["message_id"]
 
-    user_answer = [option.text for option in poll.options if option.voter_count > 0][0]
-    correct_answer = poll.correct_option_id
+#     user_answer = [option.text for option in poll.options if option.voter_count > 0][0]
+#     correct_answer = poll.correct_option_id
 
-    logger.info(f"{user_answer=}")
-    logger.info(f"{correct_answer=}")
+#     logger.info(f"{user_answer=}")
+#     logger.info(f"{correct_answer=}")
 
-    logger.info(f"{update.poll.total_voter_count=}")
-    logger.info(context.bot_data[chat_id])
-    await context.bot.stop_poll(chat_id, message_id)
+#     logger.info(f"{update.poll.total_voter_count=}")
+#     logger.info(context.bot_data[chat_id])
+#     await context.bot.stop_poll(chat_id, message_id)
+
+
+# async def poll_answer_handler_mc(
+#     update: Update, context: ContextTypes.DEFAULT_TYPE
+# ) -> None:
+#     # user_answer = [option.text for option in poll.options if option.voter_count > 0][0]
+#     # correct_answer = poll.correct_option_id
+
+#     # logger.info(f"{user_answer=}")
+#     # logger.info(f"{correct_answer=}")
+#     chat_id = update.effective_chat.id
+
+#     update.poll_answer.option_ids
+#     update.poll_answer
 
 
 async def completed_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    # correct = context.bot_data["correct_answer_count"]
-    # total = context.bot_data["total_question_count"]
-    # reply_text = f"You got {correct} out of {total} right!"
-    await update.message.reply_text("You have completed the poll")
+    chat_id = update.effective_chat.id
+
+    # try catch needed here
+    chat_payload = context.bot_data[chat_id]
+    correct = chat_payload["correct_answer_count"]
+    total = chat_payload["total_question_count"]
+    reply_text = f"You got {correct} out of {total} right!"
+
+    await update.message.reply_text(reply_text)
 
     return ConversationHandler.END
 
@@ -222,24 +238,25 @@ def main() -> None:
     # QUIZ_STARTED, QUIZZING = range(2)
 
     mc_handler = ConversationHandler(
-        entry_points=[CommandHandler("start_mc", start_chat_mc)],
+        entry_points=[CommandHandler("mc", start_chat_mc)],
         states={
             QUIZZING: [
                 MessageHandler(
-                    #                    filters.Regex("^Start|A|B|C|D$")
-                    filters.POLL | (filters.TEXT & ~(filters.COMMAND)),
+                    filters.Regex("^Start|A|B|C|D$"),
                     ask_question_mc,
                 )
             ]
         },
-        fallbacks=[CommandHandler("cancel", cancel_mc)],
+        fallbacks=[CommandHandler("Cancel", cancel_mc)],
     )
 
     application = ApplicationBuilder().token(token).build()
     # application.add_handler(PollHandler(receive_quiz_answer))
 
     application.add_handler(mc_handler)
-    application.add_handler(PollHandler(handle_answer_mc))
+    # application.add_handler(PollHandler(poll_handler_mc))
+    # application.add_handler(PollAnswerHandler(poll_answer_handler_mc))
+    # application.add_handler(PollHandler(handle_answer_mc))
 
     logger.info("Starting App")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
