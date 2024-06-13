@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from unstructured.documents.elements import Element
@@ -7,8 +5,8 @@ from unstructured.partition.pdf import partition_pdf
 
 from examgpt.sources.chunkers.base import TextChunk
 
-if TYPE_CHECKING:
-    from examgpt.sources.filetypes.base import Source
+# if TYPE_CHECKING:
+from examgpt.sources.filetypes.base import Source
 
 
 # TODO: remove chunk limit.. added for debugging only

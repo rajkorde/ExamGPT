@@ -24,3 +24,6 @@ class ApplicationSettings(BaseSettings):
     def configure_logging(self):
         logger.remove()
         logger.add(sys.stdout, level=self.log_level.upper())
+
+
+settings = ApplicationSettings()  # pyright: ignore

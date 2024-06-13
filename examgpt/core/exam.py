@@ -6,33 +6,34 @@ from uuid import uuid4
 from codenamize import codenamize  # type: ignore
 
 from examgpt.sources.filetypes.base import Source, SourceType
-from examgpt.sources.filetypes.pdf import PDFFile
+from examgpt.utils.misc import get_current_time
+
+# from examgpt.sources.filetypes.pdf import PDFFile
 
 
 @dataclass
 class Exam:
     name: str
     sources: list[Source] = field(default_factory=list)
-    # TODO: Replace with friendly id
-    exam_id: str = field(default_factory=lambda: str(codenamize(uuid4())))
+    last_updated: str = field(default_factory=get_current_time)
+    exam_id: str = field(default_factory=lambda: codenamize(str(uuid4())))
     post_event: bool = False
 
-    _source_mapping: ClassVar[dict[str, Any]] = {SourceType.PDF.value: PDFFile}
+    #    _source_mapping: ClassVar[dict[str, Any]] = {SourceType.PDF.value: PDFFile}
 
     def to_dict(self):
         return {
             "name": self.name,
             "exam_id": self.exam_id,
+            "created_time": self.last_updated,
             "sources": [source.to_dict() for source in self.sources],
         }
 
     @staticmethod
-    def from_dict(exam_dict: dict[str, Any]) -> "Exam":
+    def from_dict(data: dict[str, Any]) -> "Exam":
         return Exam(
-            name=exam_dict["name"],
-            exam_id=exam_dict["exam_id"],
-            sources=[
-                Exam._source_mapping[source["type"]].from_dict(source)
-                for source in exam_dict["sources"]
-            ],
+            name=data["name"],
+            exam_id=data["exam_id"],
+            last_updated=data["last_updated"],
+            sources=[Source.from_dict(source) for source in data["sources"]],
         )

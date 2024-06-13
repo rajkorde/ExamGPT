@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt
 from examgpt.ai.aimodel import AIModel
 from examgpt.ai.model_providers.llama import LlamaProvider
 from examgpt.ai.model_providers.openai import OpenAIProvider
-from examgpt.core.config import ApplicationSettings
+from examgpt.core.config import ApplicationSettings, settings
 from examgpt.core.exam import Exam
 
 # from examgpt.frontend.chatbot.chat import start_chat
@@ -20,18 +20,18 @@ from examgpt.sources.filetypes.pdf import PDFFile
 from examgpt.storage.files import FileStorage
 from examgpt.utils.checkpoint import CheckpointService
 
-settings = ApplicationSettings()  # pyright: ignore
+# settings = ApplicationSettings()  # pyright: ignore
 
-# exam_name = "AWS Solution Architect Associate Certification"
+exam_name = "AWS Solution Architect Associate Certification"
 # # exam_name = "AWS Certified Solutions Architect - Associate"
-# pdf_file = "testdata/aws2.pdf"
+pdf_file = "testdata/aws2.pdf"
 
 
-# # create sources
-# chunker = SimplePDFChunker(chunk_size=2500)
+# create sources
+chunker = SimplePDFChunker(chunk_size=2500)
 
-# pdf = PDFFile(location=pdf_file, chunker=chunker)
-# logger.info(pdf)
+pdf = PDFFile(location=pdf_file, chunker=chunker)
+logger.info(pdf)
 
 # exam = Exam(name=exam_name, sources=[pdf])
 # logger.info(exam)

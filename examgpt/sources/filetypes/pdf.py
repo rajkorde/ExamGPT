@@ -4,19 +4,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from attr import field
-
 # from typing import Sequence
 # from unstructured.documents.elements import Element
 # from unstructured.partition.pdf import partition_pdf
-from examgpt.sources.chunkers.base import TextChunk
+from examgpt.sources.chunkers.base import Chunker, TextChunk
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import Source, SourceType
 
 
 @dataclass
+@Source.register_subclass(SourceType.PDF)
 class PDFFile(Source):
-    type: SourceType = field(default=SourceType.PDF)
+    def __init__(
+        self, location: str, chunker: Chunker, type: SourceType = SourceType.PDF
+    ):
+        super().__init__(location, chunker, type)
 
     def chunk(self) -> list[TextChunk]:
         self.chunks = self.chunker.chunk(self)
@@ -32,13 +34,13 @@ class PDFFile(Source):
         self.full_text = "".join([chunk.text for chunk in self.chunks])
         return self.full_text
 
-    @staticmethod
-    def from_dict(source_dict: dict[str, Any]) -> "PDFFile":
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> PDFFile:
         return PDFFile(
-            location=source_dict["location"],
-            type=SourceType(source_dict["type"]),
-            id=source_dict["id"],
-            chunks=[TextChunk.from_dict(chunk) for chunk in source_dict["chunks"]],
+            location=data["location"],
+            type=SourceType(data["type"]),
+            id=data["id"],
+            chunks=[TextChunk.from_dict(chunk) for chunk in data["chunks"]],
             chunker=SimplePDFChunker(),
         )
 

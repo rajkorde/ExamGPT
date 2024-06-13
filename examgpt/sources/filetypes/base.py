@@ -5,10 +5,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Type
 from uuid import uuid4
 
 from loguru import logger
+from numpy import source
 
 from examgpt.core.exceptions import (
     NoScenariosProvided,
@@ -34,22 +35,48 @@ class SourceType(Enum):
     PDF = "PDF"
     HTML = "HTML"
     MARKDOWN = "MARKDOWN"
+    UNKNOWN = "UNKNOWN"
 
 
-@dataclass
+# @dataclass
 class Source(ABC):
-    location: str
-    chunker: Chunker
-    type: SourceType
-    chunks: list[TextChunk] = field(default_factory=list)
-    id: str = field(default_factory=lambda: str(uuid4()))
-    full_text: str | None = None
+    # location: str
+    # chunker: Chunker
+    # type: SourceType
+    # chunks: list[TextChunk] = field(default_factory=list)
+    # id: str = field(default_factory=lambda: str(uuid4()))
+    # full_text: str | None = None
 
-    def __post_init__(self):
+    _registry: dict[SourceType, Type[Source]] = {}
+
+    def __init__(
+        self,
+        location: str,
+        chunker: Chunker,
+        type: SourceType = SourceType.UNKNOWN,
+        id: str = str(uuid4()),
+        chunks: list[TextChunk] = [],
+    ):
+        self.location = location
+        self.chunker = chunker
+        self.type = type
+        self.chunks = chunks
+        self.id = id
+
+        self.full_text = None
+
         file = Path(self.location).resolve()
         if not file.exists():
             raise FileNotFoundError(f"File not found: {file}")
         self.location = str(file)
+
+    @classmethod
+    def register_subclass(cls, source_type: SourceType):
+        def decorator(subclass: Type[Source]) -> Type[Source]:
+            cls._registry[source_type] = subclass
+            return subclass
+
+        return decorator
 
     @abstractmethod
     def chunk(self) -> list[TextChunk]: ...
@@ -60,14 +87,24 @@ class Source(ABC):
     @abstractmethod
     def to_dict(self) -> dict[str, Any]: ...
 
-    @staticmethod
-    @abstractmethod
-    def from_dict(source_dict: dict[str, Any]) -> Source: ...
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Source:
+        source_type = data.get("type")
+        if not source_type:
+            raise KeyError(f"Key type not present in data: {data}")
+
+        if source_type not in cls._registry:
+            raise ValueError(f"Unknown source type: {source_type}")
+
+        return cls._registry[source_type].from_dict(data)
 
     def update_location(self, new_location: str) -> None:
         self.location = new_location
 
     def limit_chunks(self, n: int = 5) -> None:
+        """
+        Limits the number of chunks to process for testing
+        """
         self.chunks = self.chunks[:n]
 
     # TODO: this code is too complicated. refactor it.
