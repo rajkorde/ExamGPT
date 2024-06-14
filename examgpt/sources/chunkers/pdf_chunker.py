@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from unstructured.documents.elements import Element
 from unstructured.partition.pdf import partition_pdf
 

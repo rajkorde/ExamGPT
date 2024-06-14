@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Type
+from typing import TYPE_CHECKING, Any, Type
 from uuid import uuid4
 
 from loguru import logger
