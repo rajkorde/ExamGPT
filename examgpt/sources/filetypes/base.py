@@ -107,7 +107,7 @@ class Source(ABC):
         self.chunks = self.chunks[:n]
 
     # TODO: this code is too complicated. refactor it.
-    def get_qa_collection(
+    def get_qa_collection_old(
         self,
         exam_id: str,
         exam_name: str,

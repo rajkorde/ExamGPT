@@ -60,33 +60,34 @@ class CheckpointService:
     # TODO: clean this up so that the name of the id attribute can be pass through
     # decorator definition. Right now, its hardcoded to id.
     @classmethod
-    def checkpoint(cls, func: Callable[[Any, Any], Any]):
+    def checkpoint(cls, func: Callable[..., Any]) -> Any:
         # if hasattr(CheckpointService, "checkpoint_file"):
         #     print("I am initialized")
         #     cls.processed_objects = cls.load_checkpoint() or {}
         # else:
         #     print("I am not initialized yet")
 
-        def wrapper(instance: Any, data: Any) -> Any:
+        def wrapper(instance: Any, id: str, *args, **kwargs):  # type: ignore
             """
             This method that needs to be checkpointed should have this signature.
-            IMPORTANT: The data parameter must have a unique id
+            This can only checkpoint methods that are part of a class.
+            IMPORTANT: The first parameter of any method that needs to be checkpointed
+            must have a unqiue id it gets after the first parameter (after self)
 
             Args:
                 instance: This assumes that the method to be checkpointed is part of a class.
-                data: The data that would be checkpointed. The data object must have a
-                    unique ID.
+                id: unique identifier for this object. Used for indexing in the checkpoint file
 
             Returns:
                 The result of the operation.
             """
 
-            if data.id in cls.processed_objects:
-                print(f"Data already processed: {data.id}")
-                result = cls.processed_objects[data.id]
+            if id in cls.processed_objects:
+                print(f"Data already processed: {id}")
+                result = cls.processed_objects[id]
             else:
-                result = func(instance, data)
-                cls.processed_objects[data.id] = result
+                result = func(instance, id, *args, **kwargs)
+                cls.processed_objects[id] = result
                 cls.save_checkpoint(cls.processed_objects)
 
             print(f"Result inside wrapper: {result}")

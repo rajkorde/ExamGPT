@@ -68,24 +68,31 @@ source.limit_chunks(25)  # for testing
 model = AIModel(model_provider=OpenAIProvider())
 
 
+class Model:
+    def get_answer(self, chunk):
+        return f"Processed_{chunk.id}"
+
+
 @dataclass
 class ChunkProcessor:
     chunks: list[TextChunk]
+    model: Model
 
     def process_chunks(self):
         for i, chunk in enumerate(self.chunks):
             logger.info(f"Processing {i}: {chunk.id}")
-            result = self.get_answer(chunk)
+            result = self.get_answer(chunk.id, chunk, self.model)
             print(f"Result: {result}")
 
     @CheckpointService.checkpoint
-    def get_answer(self, chunk: TextChunk):
+    def get_answer(self, id: str, chunk: TextChunk, model):
         time.sleep(1)
-        return f"Processed_{chunk.id}"
+        return model.get_answer(chunk)
 
 
+model = Model()
 CheckpointService.init(destination_folder)
-chunk_processor = ChunkProcessor(source.chunks)
+chunk_processor = ChunkProcessor(source.chunks, model)
 chunk_processor.process_chunks()
 CheckpointService.delete_checkpoint()
 
