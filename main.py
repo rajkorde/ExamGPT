@@ -16,6 +16,7 @@ from examgpt.core.exam import Exam
 # from examgpt.frontend.chatbot.chat import start_chat
 from examgpt.core.question import QACollection
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
+from examgpt.sources.filetypes.base import Source
 from examgpt.sources.filetypes.pdf import PDFFile
 from examgpt.storage.files import FileStorage
 from examgpt.utils.checkpoint import CheckpointService
@@ -31,26 +32,26 @@ pdf_file = "testdata/aws2.pdf"
 chunker = SimplePDFChunker(chunk_size=2500)
 
 pdf = PDFFile(location=pdf_file, chunker=chunker)
-logger.info(pdf)
+logger.info(pdf.to_dict())
 
-exam = Exam(name=exam_name, sources=[pdf])
+exam = Exam(name=exam_name, sources=[pdf], exam_id="innocent-few")
 logger.info(exam)
 
-# exam_id = exam.exam_id
+exam_id = exam.exam_id
 
 exam_id = "innocent-few"
 
-destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
+destination_folder = str(Path(settings.temp_folder) / exam_id)
 storage = FileStorage(folder=destination_folder)
 storage.copy(sources=exam.sources)
 
 # updated location after copying
-logger.info(pdf)
+logger.info(pdf.to_dict())
 
-# chunks = pdf.chunk()
+chunks = pdf.chunk()
 
-# storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
-# logger.info(f"Length of whole document: {pdf.full_text} characters")
+storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
+logger.info(f"Length of whole document: {pdf.full_text} characters")
 
 ## Create an exam object
 
