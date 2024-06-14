@@ -33,15 +33,19 @@ chunker = SimplePDFChunker(chunk_size=2500)
 pdf = PDFFile(location=pdf_file, chunker=chunker)
 logger.info(pdf)
 
-# exam = Exam(name=exam_name, sources=[pdf])
-# logger.info(exam)
+exam = Exam(name=exam_name, sources=[pdf])
+logger.info(exam)
 
-# destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
-# storage = FileStorage(folder=destination_folder)
-# storage.copy(sources=exam.sources)
+# exam_id = exam.exam_id
 
-# # updated location after copying
-# logger.info(pdf)
+exam_id = "innocent-few"
+
+destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
+storage = FileStorage(folder=destination_folder)
+storage.copy(sources=exam.sources)
+
+# updated location after copying
+logger.info(pdf)
 
 # chunks = pdf.chunk()
 

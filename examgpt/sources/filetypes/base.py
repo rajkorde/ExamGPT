@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any, Callable, ClassVar, Type
 from uuid import uuid4
 
 from loguru import logger
-from numpy import source
 
 from examgpt.core.exceptions import (
     NoScenariosProvided,
@@ -93,6 +92,7 @@ class Source(ABC):
         if not source_type:
             raise KeyError(f"Key type not present in data: {data}")
 
+        source_type = SourceType[source_type]
         if source_type not in cls._registry:
             raise ValueError(f"Unknown source type: {source_type}")
 
