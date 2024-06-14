@@ -1,5 +1,8 @@
 # from examgpt.ai.models.openai import OpenAIConfig
 import pickle
+import time
+from concurrent.futures import process
+from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
@@ -15,6 +18,7 @@ from examgpt.core.exam import Exam
 
 # from examgpt.frontend.chatbot.chat import start_chat
 from examgpt.core.question import QACollection
+from examgpt.sources.chunkers.base import TextChunk
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import Source
 from examgpt.sources.filetypes.pdf import PDFFile
@@ -38,6 +42,7 @@ exam = Exam(name=exam_name, sources=[pdf], exam_id="innocent-few")
 logger.info(exam)
 
 exam_id = exam.exam_id
+logger.info(exam_id)
 
 destination_folder = str(Path(settings.temp_folder) / exam_id)
 storage = FileStorage(folder=destination_folder)
@@ -46,22 +51,43 @@ storage.copy(sources=exam.sources)
 # updated location after copying
 logger.info(pdf.to_dict())
 
-chunks = pdf.chunk()
-
-storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
-logger.info(f"Length of whole document: {pdf.full_text} characters")
+# chunks = pdf.chunk()
+# storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
+# logger.info(f"Length of whole document: {pdf.full_text} characters")
 
 ## Create an exam object
 
 folder = str(Path(settings.temp_folder) / exam_id)
 storage = FileStorage(folder=folder)
-CheckpointService(folder=folder)
+# CheckpointService(folder=folder)
 exam = storage.get_exam(location="chunks.json")
 exam_name = exam.name
 source = exam.sources[0]
-source.limit_chunks()  # for testing
+source.limit_chunks(25)  # for testing
 
 model = AIModel(model_provider=OpenAIProvider())
+
+
+@dataclass
+class ChunkProcessor:
+    chunks: list[TextChunk]
+
+    def process_chunks(self):
+        for i, chunk in enumerate(self.chunks):
+            logger.info(f"Processing {i}: {chunk.id}")
+            result = self.get_answer(chunk)
+            print(f"Result: {result}")
+
+    @CheckpointService.checkpoint
+    def get_answer(self, chunk: TextChunk):
+        time.sleep(1)
+        return f"Processed_{chunk.id}"
+
+
+CheckpointService.init(destination_folder)
+chunk_processor = ChunkProcessor(source.chunks)
+chunk_processor.process_chunks()
+CheckpointService.delete_checkpoint()
 
 
 chunk = source.chunks[3]
