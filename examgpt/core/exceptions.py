@@ -24,24 +24,7 @@ class NotEnoughInformationInContext(BaseException):
         super().__init__(message=message)
 
 
-class NoScenariosProvided(BaseException):
-    """Raised when asked to create QA list, but no QA types (Scenarios) provided"""
-
-    def __init__(
-        self,
-        message: str = "Must provide a scenario for QA to be generated",
-    ):
-        super().__init__(message=message)
-
-
-class UnSupportedScenario(BaseException):
-    """Raised when asked to create QA list for an unsupported scenario"""
-
-    def __init__(self, scenario_name: str):
-        message = f"Unsupported scenario for QA generation: {scenario_name}"
-        super().__init__(message=message)
-
-
+# TODO: Remove
 class UndefinedCheckpointPath(BaseException):
     """Raised when trying to checkpoint some data without defining checkpoint file first"""
 

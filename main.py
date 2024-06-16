@@ -9,6 +9,7 @@ from uuid import uuid4
 from codenamize import codenamize  # type: ignore
 from loguru import logger
 from tenacity import retry, stop_after_attempt
+from yaml import ScalarNode
 
 from examgpt.ai.aimodel import AIModel
 from examgpt.ai.model_providers.llama import LlamaProvider
@@ -17,7 +18,7 @@ from examgpt.core.config import ApplicationSettings, settings
 from examgpt.core.exam import Exam
 
 # from examgpt.frontend.chatbot.chat import start_chat
-from examgpt.core.question import QACollection
+from examgpt.core.question import QACollection, Scenario
 from examgpt.sources.chunkers.base import TextChunk
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import Source
@@ -63,65 +64,81 @@ storage = FileStorage(folder=folder)
 exam = storage.get_exam(location="chunks.json")
 exam_name = exam.name
 source = exam.sources[0]
-source.limit_chunks(25)  # for testing
+source.limit_chunks(6)  # for testing
 
 model = AIModel(model_provider=OpenAIProvider())
 
 
-class Model:
-    def get_answer(self, chunk):
-        return f"Processed_{chunk.id}"
+# class Model:
+#     def get_answer(self, chunk: TextChunk):
+#         return f"Processed_{chunk.id}"
 
 
-@dataclass
-class ChunkProcessor:
-    chunks: list[TextChunk]
-    model: Model
+# @dataclass
+# class ChunkProcessor:
+#     chunks: list[TextChunk]
+#     model: Model
 
-    def process_chunks(self):
-        for i, chunk in enumerate(self.chunks):
-            logger.info(f"Processing {i}: {chunk.id}")
-            result = self.get_answer(chunk.id, chunk, self.model)
-            print(f"Result: {result}")
+#     def process_chunks_lf(self):
+#         for i, chunk in enumerate(self.chunks):
+#             logger.info(f"Processing {i}: {chunk.id}")
+#             result = self.get_answer(
+#                 id=chunk.id,
+#                 chunk=chunk,
+#                 model=self.model,
+#                 scenario=Scenario.LONGFORM.value,
+#             )
+#             print(f"Result: {result}")
 
-    @CheckpointService.checkpoint
-    def get_answer(self, id: str, chunk: TextChunk, model):
-        time.sleep(1)
-        return model.get_answer(chunk)
+#     def process_chunks_mc(self):
+#         for i, chunk in enumerate(self.chunks):
+#             logger.info(f"Processing {i}: {chunk.id}")
+#             result = self.get_answer(
+#                 id=chunk.id,
+#                 chunk=chunk,
+#                 model=self.model,
+#                 scenario=Scenario.MULTIPLECHOICE.value,
+#             )
+#             print(f"Result: {result}")
+
+#     @CheckpointService.checkpoint
+#     def get_answer(self, id: str, chunk: TextChunk, model: Model, scenario: str):
+#         time.sleep(1)
+#         return model.get_answer(chunk)
 
 
-model = Model()
-CheckpointService.init(destination_folder)
-chunk_processor = ChunkProcessor(source.chunks, model)
-chunk_processor.process_chunks()
-CheckpointService.delete_checkpoint()
+# model = Model()
+# CheckpointService.init(destination_folder)
+# chunk_processor = ChunkProcessor(source.chunks, model)
+# chunk_processor.process_chunks_lf()
+# chunk_processor.process_chunks_mc()
+# CheckpointService.delete_checkpoint()
 
 
-chunk = source.chunks[3]
-response = model.generate_longform_qa(chunk=chunk, exam_name=exam_name)
-response = model.generate_multiplechoice_qa(chunk=chunk, exam_name=exam_name)
+# chunk = source.chunks[3]
+# response = model.generate_longform_qa(chunk=chunk, exam_name=exam_name)
+# response = model.generate_multiplechoice_qa(chunk=chunk, exam_name=exam_name)
 # response = model._context_check(chunk=chunk.text, exam_name=exam_name)
 # print(response)
 
 
+# CheckpointService.init(destination_folder)
 # qa_collection = source.get_qa_collection(exam_id, exam_name, model)
-# @retry(stop=stop_after_attempt(10))
-# def get_qa_collection(exam_id: str, exam_name: str, model: AIModel):
-#     qa_collection = source.get_qa_collection(exam_id, exam_name, model)
-#     return qa_collection
+# # TODO: remove empty QA after done.
+# CheckpointService.delete_checkpoint()
 
 
-# qa_collection = get_qa_collection(exam_id, exam_name, model)
-# print(qa_collection)
+@retry(stop=stop_after_attempt(10))
+def get_qa_collection(exam_id: str, exam_name: str, model: AIModel):
+    qa_collection = source.get_qa_collection(exam_id, exam_name, model)
+    return qa_collection
 
 
-# d = pickle.load(
-#     Path("temp/0329ee78-f01a-4617-8796-914e44b47ad1/checkpoints/checkpoint.pkl").open(
-#         "rb"
-#     )
-# )
-
-# storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
+CheckpointService.init(destination_folder)
+qa_collection = get_qa_collection(exam_id, exam_name, model)
+CheckpointService.delete_checkpoint()
+print(qa_collection)
+storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
 
 # qac = storage.get_qa_collection("answers.json")
 
