@@ -78,10 +78,12 @@ class MultipleChoice(BaseModel):
 
 class LongformEnhanced(LongForm):
     chunk_id: str
+    last_updated: str
 
 
 class MultipleChoiceEnhanced(MultipleChoice):
     chunk_id: str
+    last_updated: str
 
 
 # TODO: this is not optimal implementation. Use strategy pattern to make qa collection part of source

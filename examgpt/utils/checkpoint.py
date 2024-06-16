@@ -5,11 +5,8 @@ from typing import Any, Callable
 from loguru import logger
 
 
-# TODO: check print to logging info
-# TODO: remove extra calls to Path. Checkpoint file is already of type checkpoint path
 class CheckpointService:
     _processed_objects: dict[str, Any]
-    # checkpoint_file: Path = Path()
 
     @classmethod
     def init(cls, folder: str):
@@ -22,13 +19,10 @@ class CheckpointService:
             full_path.mkdir()
 
         cls._checkpoint_file = Path(full_path) / "checkpoint.pkl"
-        logger.info(f"Checkpoint file: {cls._checkpoint_file}")
-
         cls._processed_objects = cls.load_checkpoint() or {}
 
     @classmethod
     def delete_checkpoint(cls):
-        print("Deleting checkpoint file")
         if Path(cls._checkpoint_file).exists():
             Path(cls._checkpoint_file).unlink()
         cls._processed_objects = {}
@@ -42,7 +36,6 @@ class CheckpointService:
 
     @classmethod
     def save_checkpoint(cls, data: object):
-        print("Saving checkpoint file")
         if not cls._checkpoint_file:
             raise RuntimeError(
                 "Trying to save checkpoint before initializing checkpoint service."
@@ -71,12 +64,6 @@ class CheckpointService:
     # decorator definition. Right now, its hardcoded to id.
     @classmethod
     def checkpoint(cls, func: Callable[..., Any]) -> Any:
-        # if hasattr(CheckpointService, "checkpoint_file"):
-        #     print("I am initialized")
-        #     cls.processed_objects = cls.load_checkpoint() or {}
-        # else:
-        #     print("I am not initialized yet")
-
         def wrapper(instance: Any, *args, **kwargs):  # type: ignore
             """
             This method that needs to be checkpointed should have this signature.
@@ -107,15 +94,13 @@ class CheckpointService:
                 )
 
             if cls._search(id, scenario):
-                print(f"Data already processed: {id}")
+                logger.info(f"Data already processed. Recovering from checkpoint: {id}")
                 result = cls._processed_objects[id][scenario]
             else:
                 result = func(instance, *args, **kwargs)
                 cls._update(id, scenario, result)
                 cls.save_checkpoint(cls._processed_objects)
 
-            print(f"Result inside wrapper: {result}")
-            print(cls._processed_objects.keys())
             return result
 
         return wrapper
