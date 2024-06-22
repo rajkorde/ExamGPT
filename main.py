@@ -51,8 +51,8 @@ storage.copy(sources=exam.sources)
 # updated location after copying
 logger.info(pdf.to_dict())
 
-# chunks = pdf.chunk()
-# storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
+chunks = pdf.chunk()
+storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
 # logger.info(f"Length of whole document: {pdf.full_text} characters")
 
 ## Create an exam object
@@ -63,7 +63,7 @@ storage = FileStorage(folder=folder)
 exam = storage.get_exam(location="chunks.json")
 exam_name = exam.name
 source = exam.sources[0]
-source.limit_chunks(6)  # for testing
+# source.limit_chunks(6)  # for testing
 
 model = AIModel(model_provider=OpenAIProvider())
 
