@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Type
+from typing import TYPE_CHECKING, Any, Optional, Type
 from uuid import uuid4
 
 from loguru import logger
@@ -30,21 +30,23 @@ class SourceType(Enum):
     UNKNOWN = "UNKNOWN"
 
 
-# @dataclass
-class Source(ABC):
-    # location: str
-    # chunker: Chunker
-    # type: SourceType
-    # chunks: list[TextChunk] = field(default_factory=list)
-    # id: str = field(default_factory=lambda: str(uuid4()))
-    # full_text: str | None = None
+class SourceState(Enum):
+    INIT = "INIT"
+    SOURCE_COPIED = "SOURCE_COPIED"
+    CHUNKED = "CHUNKED"
+    QAGENERATED = "QAGENERATED"
+    READY = "READY"
+    ERROR = "ERROR"
 
+
+class Source(ABC):
     _registry: dict[SourceType, Type[Source]] = {}
 
     def __init__(
         self,
         location: str,
         chunker: Chunker,
+        qacollection: Optional[QACollection] = None,
         type: SourceType = SourceType.UNKNOWN,
         id: str = str(uuid4()),
         chunks: list[TextChunk] = [],
@@ -52,9 +54,11 @@ class Source(ABC):
         self.location = location
         self.chunker = chunker
         self.type = type
-        self.chunks = chunks
-        self.id = id
 
+        self.id = id
+        self.chunks = chunks
+        self.qacollection = qacollection
+        self.state: SourceState = SourceState.INIT
         self.full_text = None
 
         file = Path(self.location).resolve()
@@ -92,6 +96,11 @@ class Source(ABC):
         return cls._registry[source_type].from_dict(data)
 
     def update_location(self, new_location: str) -> None:
+        """
+        Once the storage provided copies/uploads the source, it sets
+        the new location
+        """
+        self.state = SourceState.SOURCE_COPIED
         self.location = new_location
 
     def limit_chunks(self, n: int = 5) -> None:
@@ -202,4 +211,6 @@ class Source(ABC):
             else:
                 raise ValueError(f"Unsupport scenario: {scenario}")
 
-        return QACollection(**args)
+        self.qacollection = QACollection(**args)
+        self.state = SourceState.QAGENERATED
+        return self.qacollection

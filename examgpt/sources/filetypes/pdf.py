@@ -1,12 +1,13 @@
 # import json
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 from uuid import uuid4
 
+from examgpt.core.question import QACollection
 from examgpt.sources.chunkers.base import Chunker, TextChunk
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
-from examgpt.sources.filetypes.base import Source, SourceType
+from examgpt.sources.filetypes.base import Source, SourceState, SourceType
 
 
 @Source.register_subclass(SourceType.PDF)
@@ -15,14 +16,16 @@ class PDFFile(Source):
         self,
         location: str,
         chunker: Chunker,
+        qacollection: Optional[QACollection] = None,
         type: SourceType = SourceType.PDF,
         id: str = str(uuid4()),
         chunks: list[TextChunk] = [],
     ):
-        super().__init__(location, chunker, type, id, chunks)
+        super().__init__(location, chunker, qacollection, type, id, chunks)
 
     def chunk(self) -> list[TextChunk]:
         self.chunks = self.chunker.chunk(self)
+        self.state = SourceState.CHUNKED
         return self.chunks
 
     def create_text(self) -> str:
