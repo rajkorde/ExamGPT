@@ -101,7 +101,7 @@ class Source(ABC):
         self.chunks = self.chunks[:n]
 
     @CheckpointService.checkpoint
-    def get_longform_qa(
+    def _get_longform_qa(
         self,
         id: str,
         chunk: TextChunk,
@@ -125,7 +125,7 @@ class Source(ABC):
         return qae
 
     @CheckpointService.checkpoint
-    def get_multiplechoice_qa(
+    def _get_multiplechoice_qa(
         self,
         id: str,
         chunk: TextChunk,
@@ -172,7 +172,7 @@ class Source(ABC):
                     logger.info(
                         f"Creating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
                     )
-                    qae = self.get_longform_qa(
+                    qae = self._get_longform_qa(
                         id=chunk.id,
                         chunk=chunk,
                         model=model,
@@ -188,7 +188,7 @@ class Source(ABC):
                     logger.info(
                         f"Generating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
                     )
-                    qae = self.get_multiplechoice_qa(
+                    qae = self._get_multiplechoice_qa(
                         id=chunk.id,
                         chunk=chunk,
                         model=model,

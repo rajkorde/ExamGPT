@@ -4,15 +4,11 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
-# from typing import Sequence
-# from unstructured.documents.elements import Element
-# from unstructured.partition.pdf import partition_pdf
 from examgpt.sources.chunkers.base import Chunker, TextChunk
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import Source, SourceType
 
 
-# @dataclass
 @Source.register_subclass(SourceType.PDF)
 class PDFFile(Source):
     def __init__(
