@@ -68,65 +68,6 @@ source = exam.sources[0]
 model = AIModel(model_provider=OpenAIProvider())
 
 
-# class Model:
-#     def get_answer(self, chunk: TextChunk):
-#         return f"Processed_{chunk.id}"
-
-
-# @dataclass
-# class ChunkProcessor:
-#     chunks: list[TextChunk]
-#     model: Model
-
-#     def process_chunks_lf(self):
-#         for i, chunk in enumerate(self.chunks):
-#             logger.info(f"Processing {i}: {chunk.id}")
-#             result = self.get_answer(
-#                 id=chunk.id,
-#                 chunk=chunk,
-#                 model=self.model,
-#                 scenario=Scenario.LONGFORM.value,
-#             )
-#             print(f"Result: {result}")
-
-#     def process_chunks_mc(self):
-#         for i, chunk in enumerate(self.chunks):
-#             logger.info(f"Processing {i}: {chunk.id}")
-#             result = self.get_answer(
-#                 id=chunk.id,
-#                 chunk=chunk,
-#                 model=self.model,
-#                 scenario=Scenario.MULTIPLECHOICE.value,
-#             )
-#             print(f"Result: {result}")
-
-#     @CheckpointService.checkpoint
-#     def get_answer(self, id: str, chunk: TextChunk, model: Model, scenario: str):
-#         time.sleep(1)
-#         return model.get_answer(chunk)
-
-
-# model = Model()
-# CheckpointService.init(destination_folder)
-# chunk_processor = ChunkProcessor(source.chunks, model)
-# chunk_processor.process_chunks_lf()
-# chunk_processor.process_chunks_mc()
-# CheckpointService.delete_checkpoint()
-
-
-# chunk = source.chunks[3]
-# response = model.generate_longform_qa(chunk=chunk, exam_name=exam_name)
-# response = model.generate_multiplechoice_qa(chunk=chunk, exam_name=exam_name)
-# response = model._context_check(chunk=chunk.text, exam_name=exam_name)
-# print(response)
-
-
-# CheckpointService.init(destination_folder)
-# qa_collection = source.get_qa_collection(exam_id, exam_name, model)
-# # TODO: remove empty QA after done.
-# CheckpointService.delete_checkpoint()
-
-
 @retry(stop=stop_after_attempt(10))
 def get_qa_collection(exam_id: str, exam_name: str, model: AIModel):
     qa_collection = source.get_qa_collection(exam_id, exam_name, model)
@@ -149,9 +90,3 @@ storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
 # token_count = model.get_token_count(full_text)
 # print(f"token count: {token_count}")
 # print(model.estimate_cost(token_count))
-
-# start_chat(settings.TG_BOT_TOKEN)
-
-# codenamize test
-
-print(codenamize(str(uuid4())))

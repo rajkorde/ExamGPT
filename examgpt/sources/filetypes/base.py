@@ -46,7 +46,7 @@ class Source(ABC):
         self,
         location: str,
         chunker: Chunker,
-        qacollection: Optional[QACollection] = None,
+        qa_collection: Optional[QACollection] = None,
         type: SourceType = SourceType.UNKNOWN,
         id: str = str(uuid4()),
         chunks: list[TextChunk] = [],
@@ -57,7 +57,7 @@ class Source(ABC):
 
         self.id = id
         self.chunks = chunks
-        self.qacollection = qacollection
+        self.qa_collection = qa_collection
         self.state: SourceState = SourceState.INIT
         self.full_text = None
 
@@ -211,6 +211,6 @@ class Source(ABC):
             else:
                 raise ValueError(f"Unsupport scenario: {scenario}")
 
-        self.qacollection = QACollection(**args)
+        self.qa_collection = QACollection(**args)
         self.state = SourceState.QAGENERATED
-        return self.qacollection
+        return self.qa_collection

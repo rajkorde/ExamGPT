@@ -16,12 +16,12 @@ class PDFFile(Source):
         self,
         location: str,
         chunker: Chunker,
-        qacollection: Optional[QACollection] = None,
+        qa_collection: Optional[QACollection] = None,
         type: SourceType = SourceType.PDF,
         id: str = str(uuid4()),
         chunks: list[TextChunk] = [],
     ):
-        super().__init__(location, chunker, qacollection, type, id, chunks)
+        super().__init__(location, chunker, qa_collection, type, id, chunks)
 
     def chunk(self) -> list[TextChunk]:
         self.chunks = self.chunker.chunk(self)
