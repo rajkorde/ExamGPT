@@ -15,10 +15,10 @@ from telegram.ext import (
     filters,
 )
 
-from examgpt.frontend.chatbot.chat_helper import ChatHelper
+from examgpt.frontend.chatbot.chat_helper import ChatHelper, CommandArgs, command_parser
 
 chat = ChatHelper()
-chat.initialize("0329ee78-f01a-4617-8796-914e44b47ad1")
+chat.initialize("innocent-few")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -45,37 +45,6 @@ async def exam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
-async def longform(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    question = chat.longform()
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="\n".join([question.question, question.answer]),
-    )
-
-
-async def mutliple_choice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="I help with the multiple choice questions",
-    )
-
-
-def start_chat2(token: str) -> None:
-    logger.info("Starting Telegram Chatbot")
-    application = ApplicationBuilder().token(token).build()
-    start_handler = CommandHandler("start", start)
-    exam_handler = CommandHandler("exam", exam)
-    longform_handler = CommandHandler("qa", longform)
-    multiple_choice_handler = CommandHandler("mc", mutliple_choice)
-
-    application.add_handler(start_handler)
-    application.add_handler(exam_handler)
-    application.add_handler(longform_handler)
-    application.add_handler(multiple_choice_handler)
-
-    application.run_polling()
-
-
 QUIZZING = 1
 
 answer_keyboard_mc = [["A", "B", "C", "D"]]
@@ -88,6 +57,22 @@ async def start_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
 
     # Parse question count and topic here
+    if context.args:
+        try:
+            command = command_parser(context.args)
+        except Exception:
+            reply_text = (
+                "Incorrect format. Correct format is /mc [question_count] [topic]"
+            )
+            await update.message.reply_text(reply_text)
+            return ConversationHandler.END
+    else:
+        command = CommandArgs(question_count=1, question_topic=None)
+
+    print(f"Question Count:{command.question_count}")
+    print(f"Question Topic:{command.question_topic}")
+
+    return ConversationHandler.END
 
     question_count: int = TOTAL_QUESTION_COUNT
     chat_id = update.effective_chat.id

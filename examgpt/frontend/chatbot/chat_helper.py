@@ -1,7 +1,8 @@
 import json
 import random
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from loguru import logger
 
@@ -11,6 +12,30 @@ from examgpt.storage.base import StorageType
 from examgpt.storage.files import FileStorage
 
 settings = ApplicationSettings()  # pyright: ignore
+
+
+class CommandArgs(NamedTuple):
+    question_count: Optional[int]
+    question_topic: Optional[str]
+
+
+def command_parser(args: list[str]) -> CommandArgs:
+    def is_int(s: str) -> bool:
+        return s.strip().lstrip("-+").isdigit()
+
+    count = 1
+    topic = None
+
+    if is_int(args[0]):
+        count = int(args[0])
+        if count < 0 or count > 25:
+            raise ValueError("Invalid command format")
+        if len(args) > 1:
+            topic = " ".join(args[1:])
+    else:
+        topic = " ".join(args)
+
+    return CommandArgs(question_count=count, question_topic=topic)
 
 
 class ChatHelper:
