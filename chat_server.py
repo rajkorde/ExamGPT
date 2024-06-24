@@ -21,21 +21,22 @@ chat = ChatHelper()
 
 QUIZZING = 1
 
+start_keyboard = [["Start", "Cancel"]]
 answer_keyboard_mc = [["A", "B", "C", "D"]]
-start_keyboard_mc = [["Start", "Cancel"]]
+answer_keyboard_lf = [["Show Answer", "Cancel"]]
+
+start_markup = ReplyKeyboardMarkup(start_keyboard, one_time_keyboard=True)
 answer_markup_mc = ReplyKeyboardMarkup(answer_keyboard_mc, one_time_keyboard=True)
-start_markup_mc = ReplyKeyboardMarkup(start_keyboard_mc, one_time_keyboard=True)
+answer_markup_lf = ReplyKeyboardMarkup(answer_keyboard_lf, one_time_keyboard=True)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     welcome_text = """
 Welcome to ExamGPT!
 /exam exam_code: Initialize an exam for a given code
-/mc [n] [topic]. Start a multiple choice quiz of n questions (Default 1)
-on a optional topic.
-/lf [n] [topic]. Start a long form quiz of n questions (Default 1) on a
-optional topic.
-You can also ask general questions for the exam to refresh your memory
+/mc [n] [topic]. Start a multiple choice quiz of n questions (default 1) on an optional topic.
+/fc [n] [topic]. Start a flash card quiz of n questions (default 1) on an optional topic.
+You can also ask general questions for the exam to refresh your memory.
 """
     await context.bot.send_message(chat_id=update.effective_chat.id, text=welcome_text)
 
@@ -54,7 +55,7 @@ No exam code provided.
     if message is None:
         message = f"Invalid exam code. Please provide a valid exam code: {exam_id}"
     else:
-        message = f"Welcome to {chat.qacollection.exam_name} exam. Ready for a quiz?"
+        message = f"Welcome to {chat.qacollection.exam_name} exam practice!"
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
@@ -101,16 +102,18 @@ Please run /exam command first.
 
     context.bot_data.update(chat_payload)
 
-    question_str = "question" if question_count == 1 else "questions"  # type: ignore
+    question_str = "question" if question_count == 1 else "questions"
     reply_text = f"Ready for {question_count} multiple choice {question_str}?\n/cancel anytime to cancel quiz."
+    if command.question_topic:
+        reply_text = f"{reply_text}\nAsking questions on topics is not supported yet: {command.question_topic}"
 
     if not update.message:
         logger.warning("Update does not have a message object")
-        return await cancel_mc(update, context)
+        return await cancel(update, context)
 
     await update.message.reply_text(
         reply_text,
-        reply_markup=start_markup_mc,
+        reply_markup=start_markup,
     )
 
     return QUIZZING
@@ -175,7 +178,116 @@ async def completed_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     return ConversationHandler.END
 
 
-async def cancel_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def start_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the conversation and ask user for input."""
+
+    if not chat.qacollection:
+        error_msg = """
+Please run /exam command first.
+/exam exam_code
+"""
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=error_msg)
+        return ConversationHandler.END
+
+    # Parse question count and topic here
+    if context.args:
+        try:
+            command = command_parser(context.args)
+        except Exception:
+            reply_text = (
+                "Incorrect format. Correct format is /fc [question_count] [topic]"
+            )
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=reply_text
+            )
+            return ConversationHandler.END
+    else:
+        command = CommandArgs(question_count=1, question_topic=None)
+
+    logger.info(
+        f"Long form Scenario. Count: {command.question_count}, Topic:{command.question_topic}"
+    )
+
+    question_count = command.question_count
+    chat_id = update.effective_chat.id
+
+    chat_payload = {
+        chat_id: {
+            "total_question_count": question_count,
+            "asked_question_count": 0,
+            "last_answer": "X",
+        }
+    }
+
+    context.bot_data.update(chat_payload)
+
+    card_str = "card" if question_count == 1 else "cards"
+    reply_text = (
+        f"Ready for {question_count} flash {card_str}?\n/cancel anytime to cancel quiz."
+    )
+    if command.question_topic:
+        reply_text = f"{reply_text}\nAsking questions on topics is not supported yet: {command.question_topic}"
+
+    if not update.message:
+        logger.warning("Update does not have a message object")
+        return await cancel(update, context)
+
+    await update.message.reply_text(
+        reply_text,
+        reply_markup=start_markup,
+    )
+
+    return QUIZZING
+
+
+async def quiz_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the conversation and ask user for input."""
+
+    chat_id = update.effective_chat.id
+
+    # TODO: try catch needed here
+    chat_payload = context.bot_data[chat_id]
+    logger.info(f"{chat_payload=}")
+    last_answer = chat_payload["last_answer"]
+
+    if not last_answer == "X":
+        await update.message.reply_text(f"{last_answer}\n-----")
+
+    if chat_payload["asked_question_count"] >= chat_payload["total_question_count"]:
+        return await completed_lf(update, context)
+
+    long_form_qa = chat.longform()
+    if not long_form_qa:
+        logger.error("No flash cards found.")
+        return await error(update, context)
+
+    await update.message.reply_text(
+        long_form_qa.question,
+        reply_markup=answer_markup_lf,
+    )
+
+    chat_payload["asked_question_count"] += 1
+    chat_payload["last_answer"] = long_form_qa.answer
+
+    context.bot_data.update({chat_id: chat_payload})
+
+    return QUIZZING
+
+
+async def completed_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    chat_id = update.effective_chat.id
+
+    # TODO: try catch needed here
+    chat_payload = context.bot_data[chat_id]
+    total = chat_payload["total_question_count"]
+    reply_text = f"You practiced on {total} flash cards!"
+
+    await update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
+
+    return ConversationHandler.END
+
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     reply_text = "Quiz Cancelled."
     await update.message.reply_text(reply_text, reply_markup=ReplyKeyboardRemove())
 
@@ -196,18 +308,33 @@ def main() -> None:
         entry_points=[CommandHandler("mc", start_mc)],
         states={
             QUIZZING: [
-                MessageHandler(filters.Regex("^(Cancel)$"), cancel_mc),
+                MessageHandler(filters.Regex("^(Cancel)$"), cancel),
                 MessageHandler(
                     filters.Regex("^(Start|A|B|C|D)$") & ~filters.COMMAND,
                     quiz_mc,
                 ),
             ]
         },
-        fallbacks=[CommandHandler("cancel", cancel_mc)],
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
+    lf_handler = ConversationHandler(
+        entry_points=[CommandHandler("fc", start_lf)],
+        states={
+            QUIZZING: [
+                MessageHandler(filters.Regex("^(Cancel)$"), cancel),
+                MessageHandler(
+                    filters.Regex("^(Start|Show Answer)$") & ~filters.COMMAND,
+                    quiz_lf,
+                ),
+            ]
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
     )
 
     application = ApplicationBuilder().token(token).build()
     application.add_handler(mc_handler)
+    application.add_handler(lf_handler)
     application.add_handler(CommandHandler("exam", exam))
     application.add_handler(CommandHandler(["start", "help"], start))
 
