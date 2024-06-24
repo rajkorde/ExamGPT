@@ -14,7 +14,7 @@ settings = ApplicationSettings()  # pyright: ignore
 
 
 class CommandArgs(NamedTuple):
-    question_count: Optional[int]
+    question_count: int
     question_topic: Optional[str]
 
 
@@ -66,8 +66,6 @@ class ChatHelper:
             raise NotImplementedError()
 
         return self.qacollection.exam_id
-
-    def get_helper(self, exam_id: str): ...
 
     def multiple_choice(self, topic: str = "") -> Optional[MultipleChoiceEnhanced]:
         if self.qacollection.multiple_choice_qa is not None:

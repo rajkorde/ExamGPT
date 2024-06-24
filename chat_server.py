@@ -18,32 +18,6 @@ from telegram.ext import (
 from examgpt.frontend.chatbot.chat_helper import ChatHelper, CommandArgs, command_parser
 
 chat = ChatHelper()
-chat.initialize("innocent-few")
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Welcome to ExamGPT!"
-    )
-
-
-TOTAL_QUESTION_COUNT = 2
-
-
-async def exam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    exam_id = update.message.text
-    if not exam_id:
-        message = f"Please provide a valid exam id:{exam_id}"
-    else:
-        message = chat.initialize(exam_id)
-        if message is None:
-            message = (
-                f"This exam id doesn't exist. Please provide a valid exam id: {exam_id}"
-            )
-        else:
-            message = f"Welcome to {exam_id} exam. Ready for a quiz?"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-
 
 QUIZZING = 1
 
@@ -53,8 +27,46 @@ answer_markup_mc = ReplyKeyboardMarkup(answer_keyboard_mc, one_time_keyboard=Tru
 start_markup_mc = ReplyKeyboardMarkup(start_keyboard_mc, one_time_keyboard=True)
 
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    welcome_text = """
+Welcome to ExamGPT!
+/exam exam_code: Initialize an exam for a given code
+/mc [n] [topic]. Start a multiple choice quiz of n questions (Default 1)
+on a optional topic.
+/lf [n] [topic]. Start a long form quiz of n questions (Default 1) on a
+optional topic.
+You can also ask general questions for the exam to refresh your memory
+"""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=welcome_text)
+
+
+async def exam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args:
+        error_msg = """
+No exam code provided.
+/exam exam_code: Initialize an exam for a given code
+"""
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=error_msg)
+        return
+
+    exam_id = context.args[0]
+    message = chat.initialize(exam_id)
+    if message is None:
+        message = f"Invalid exam code. Please provide a valid exam code: {exam_id}"
+    else:
+        message = f"Welcome to {chat.qacollection.exam_name} exam. Ready for a quiz?"
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+
 async def start_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input."""
+
+    if not chat.qacollection:
+        error_msg = """
+Please run /exam command first.
+"""
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=error_msg)
+        return ConversationHandler.END
 
     # Parse question count and topic here
     if context.args:
@@ -64,17 +76,18 @@ async def start_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             reply_text = (
                 "Incorrect format. Correct format is /mc [question_count] [topic]"
             )
-            await update.message.reply_text(reply_text)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=reply_text
+            )
             return ConversationHandler.END
     else:
         command = CommandArgs(question_count=1, question_topic=None)
 
-    print(f"Question Count:{command.question_count}")
-    print(f"Question Topic:{command.question_topic}")
+    logger.info(
+        f"Multiple Choice Scenario. Count: {command.question_count}, Topic:{command.question_topic}"
+    )
 
-    return ConversationHandler.END
-
-    question_count: int = TOTAL_QUESTION_COUNT
+    question_count = command.question_count
     chat_id = update.effective_chat.id
 
     chat_payload = {
@@ -89,7 +102,7 @@ async def start_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.bot_data.update(chat_payload)
 
     question_str = "question" if question_count == 1 else "questions"  # type: ignore
-    reply_text = f"Ready for {question_count} multiple choice {question_str}\n/cancel anytime to cancel quiz.?"
+    reply_text = f"Ready for {question_count} multiple choice {question_str}?\n/cancel anytime to cancel quiz."
 
     if not update.message:
         logger.warning("Update does not have a message object")
@@ -108,7 +121,7 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     chat_id = update.effective_chat.id
 
-    # try catch needed here
+    # TODO: try catch needed here
     chat_payload = context.bot_data[chat_id]
     logger.info(f"{chat_payload=}")
     last_answer = chat_payload["last_answer"]
@@ -124,14 +137,8 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 f"Incorrect! The correct answer is {last_answer}"
             )
 
-    if chat_payload["asked_question_count"] == chat_payload["total_question_count"]:
+    if chat_payload["asked_question_count"] >= chat_payload["total_question_count"]:
         return await completed_mc(update, context)
-
-    # question = "When was I born\nA: 1975\nB: 1976\nC: 1974\nD: 1976\n"
-    # await update.message.reply_text(
-    #     question,
-    #     reply_markup=answer_markup_mc,
-    # )
 
     multiple_choice_qa = chat.multiple_choice()
     if not multiple_choice_qa:
@@ -201,7 +208,8 @@ def main() -> None:
 
     application = ApplicationBuilder().token(token).build()
     application.add_handler(mc_handler)
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("exam", exam))
+    application.add_handler(CommandHandler(["start", "help"], start))
 
     logger.info("Starting App")
     application.run_polling(allowed_updates=Update.ALL_TYPES)

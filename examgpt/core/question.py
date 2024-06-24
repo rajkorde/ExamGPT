@@ -91,6 +91,7 @@ class MultipleChoiceEnhanced(MultipleChoice):
 @dataclass
 class QACollection:
     exam_id: str
+    exam_name: str
     source_id: str
     long_form_qa: Optional[list[LongformEnhanced]] = field(default_factory=list)
     multiple_choice_qa: Optional[list[MultipleChoiceEnhanced]] = field(
@@ -111,6 +112,7 @@ class QACollection:
     def from_dict(qa_collection_dict: dict[str, Any]) -> "QACollection":
         return QACollection(
             exam_id=qa_collection_dict["exam_id"],
+            exam_name=qa_collection_dict["exam_name"],
             source_id=qa_collection_dict["source_id"],
             long_form_qa=[
                 LongformEnhanced(**qa) for qa in qa_collection_dict["long_form_qa"]
@@ -125,6 +127,7 @@ class QACollection:
         return "\n".join(
             [
                 f"Exam_id: {self.exam_id}",
+                f"Exam_name: {self.exam_name}",
                 f"Source_id: {self.source_id}",
                 "Long Form QA:\n--------------",
                 "\n".join([str(qa) for qa in self.long_form_qa])

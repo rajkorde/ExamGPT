@@ -172,6 +172,7 @@ class Source(ABC):
         args = {}
         args["exam_id"] = exam_id
         args["source_id"] = self.id
+        args["exam_name"] = exam_name
         total_chunks = len(self.chunks)
 
         for scenario in scenarios:
