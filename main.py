@@ -1,19 +1,12 @@
-# from examgpt.ai.models.openai import OpenAIConfig
-import pickle
-import time
-from dataclasses import dataclass
 from pathlib import Path
-from uuid import uuid4
 
-from codenamize import codenamize  # type: ignore
 from loguru import logger
 from tenacity import retry, stop_after_attempt
-from yaml import ScalarNode
 
 from examgpt.ai.aimodel import AIModel
 from examgpt.ai.model_providers.llama import LlamaProvider
 from examgpt.ai.model_providers.openai import OpenAIProvider
-from examgpt.core.config import ApplicationSettings, settings
+from examgpt.core.config import settings
 from examgpt.core.exam import Exam
 
 # from examgpt.frontend.chatbot.chat import start_chat

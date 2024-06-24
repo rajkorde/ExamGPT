@@ -15,9 +15,11 @@ from telegram.ext import (
     filters,
 )
 
+from examgpt.core.config import settings  # noqa: F401 # type: ignore
 from examgpt.frontend.chatbot.chat_helper import ChatHelper, CommandArgs, command_parser
 
 chat = ChatHelper()
+
 
 QUIZZING = 1
 
@@ -96,6 +98,7 @@ Please run /exam command first.
             "total_question_count": question_count,
             "asked_question_count": 0,
             "correct_answer_count": 0,
+            "question_list": [],
             "last_answer": "X",
         }
     }
@@ -126,8 +129,9 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     # TODO: try catch needed here
     chat_payload = context.bot_data[chat_id]
-    logger.info(f"{chat_payload=}")
+    # logger.debug(f"{chat_payload=}")
     last_answer = chat_payload["last_answer"]
+    question_list = chat_payload["question_list"]
     user_answer = update.effective_message.text
 
     if not last_answer == "X":
@@ -143,10 +147,13 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if chat_payload["asked_question_count"] >= chat_payload["total_question_count"]:
         return await completed_mc(update, context)
 
-    multiple_choice_qa = chat.multiple_choice()
-    if not multiple_choice_qa:
-        logger.error("No multiple choice questions found.")
-        return await error(update, context)
+    while True:
+        multiple_choice_qa = chat.multiple_choice()
+        if not multiple_choice_qa:
+            logger.error("No multiple choice questions found.")
+            return await error(update, context)
+        if multiple_choice_qa.chunk_id not in question_list:
+            break
 
     question = multiple_choice_qa.question
     choices = "\n".join([f"{k}: {v}" for k, v in multiple_choice_qa.choices.items()])
@@ -158,6 +165,7 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     chat_payload["asked_question_count"] += 1
     chat_payload["last_answer"] = multiple_choice_qa.answer
+    chat_payload["question_list"].append(multiple_choice_qa.chunk_id)
 
     context.bot_data.update({chat_id: chat_payload})
 
@@ -216,6 +224,7 @@ Please run /exam command first.
             "total_question_count": question_count,
             "asked_question_count": 0,
             "last_answer": "X",
+            "question_list": [],
         }
     }
 
@@ -247,8 +256,9 @@ async def quiz_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     # TODO: try catch needed here
     chat_payload = context.bot_data[chat_id]
-    logger.info(f"{chat_payload=}")
+    # logger.debug(f"{chat_payload=}")
     last_answer = chat_payload["last_answer"]
+    question_list = chat_payload["question_list"]
 
     if not last_answer == "X":
         await update.message.reply_text(f"{last_answer}\n-----")
@@ -256,10 +266,13 @@ async def quiz_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if chat_payload["asked_question_count"] >= chat_payload["total_question_count"]:
         return await completed_lf(update, context)
 
-    long_form_qa = chat.longform()
-    if not long_form_qa:
-        logger.error("No flash cards found.")
-        return await error(update, context)
+    while True:
+        long_form_qa = chat.longform()
+        if not long_form_qa:
+            logger.error("No flash cards found.")
+            return await error(update, context)
+        if long_form_qa.chunk_id not in question_list:
+            break
 
     await update.message.reply_text(
         long_form_qa.question,
@@ -268,6 +281,7 @@ async def quiz_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     chat_payload["asked_question_count"] += 1
     chat_payload["last_answer"] = long_form_qa.answer
+    chat_payload["question_list"].append(long_form_qa.chunk_id)
 
     context.bot_data.update({chat_id: chat_payload})
 
