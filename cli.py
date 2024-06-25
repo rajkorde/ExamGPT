@@ -1,20 +1,35 @@
-from typing import Optional
+from pathlib import Path
+from typing import Any, Optional
 
 import typer
-from loguru import logger
+from rich import print
 from typing_extensions import Annotated
 
+from examgpt.core.exam import Exam
+from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
 from examgpt.sources.filetypes.base import SourceState
+from examgpt.sources.filetypes.pdf import PDFFile
 
 __version__ = "0.1.0"
 
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(no_args_is_help=True, add_completion=False)
+state = {"verbose": False, "debug": False}
 
 
 def version_callback(value: bool):
     if value:
         print(f"ExamGPT CLI Version: {__version__}")
         raise typer.Exit()
+
+
+def debug_log(text: Any):
+    if state["debug"]:
+        print(str(text))
+
+
+def log(text: Any):
+    if state["verbose"]:
+        print(str(text))
 
 
 @app.callback(invoke_without_command=True)
@@ -36,7 +51,8 @@ def main(
     ] = True,
     verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = False,
     version: Annotated[
-        Optional[bool], typer.Option("--version", callback=version_callback)
+        Optional[bool],
+        typer.Option("--version", help="Show CLI version", callback=version_callback),
     ] = None,
     code: Annotated[
         Optional[str],
@@ -48,13 +64,40 @@ def main(
     Once the processing of study material is complete, you will be provided with an exam code that you can use in telegram.
     """
 
-    logger.info(f"{name=}")
-    logger.info(f"{location=}")
-    logger.info(f"{final_state=}")
-    logger.info(f"{debug=}")
-    logger.info(f"{verbose=}")
-    logger.info(f"{version=}")
-    logger.info(f"{code=}")
+    # logger.info(f"{name=}")
+    # logger.info(f"{location=}")
+    # logger.info(f"{final_state=}")
+    # logger.info(f"{debug=}")
+    # logger.info(f"{verbose=}")
+    # logger.info(f"{version=}")
+    # logger.info(f"{code=}")
+
+    # verify location
+    if not Path(location).exists():
+        print(f"[bold red]Error:[/bold red] File not found: {location}")
+        typer.Exit(-1)
+        return
+
+    if str(Path(location).suffix).lower() != ".pdf":
+        print(
+            f"[bold red]Error:[/bold red] Only pdf files supported currently: {location}"
+        )
+        typer.Exit(-1)
+        return
+    state["verbose"] = verbose
+    state["debug"] = debug
+
+    # Init
+    log("Initializing Exam...")
+    chunker = SimplePDFChunker(chunk_size=2500)
+    pdf = PDFFile(location=location, chunker=chunker)
+    debug_log(pdf.to_dict())
+    exam = Exam(name=name, sources=[pdf], exam_id="fragile-parking")
+    debug_log(exam)
+
+    print(
+        f"Your exam code is [bold green]{exam.exam_id}[/bold green]. Please use this code to start practicing in Telegram app."
+    )
 
 
 if __name__ == "__main__":
