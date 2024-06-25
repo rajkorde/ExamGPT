@@ -19,23 +19,28 @@ def version_callback(value: bool):
 
 @app.callback(invoke_without_command=True)
 def main(
-    name: Annotated[str, typer.Argument(help="Name of the exam")],
+    name: Annotated[str, typer.Option(help="Name of the exam", show_default=False)],
     location: Annotated[
-        str, typer.Argument(help="Location of the file with study material")
+        str,
+        typer.Option(
+            help="Location of the file with study material", show_default=False
+        ),
     ],
-    final_state: Annotated[
-        SourceState, typer.Option(help="Final state of the execution")
-    ] = SourceState.INIT,
+    final_state: SourceState = typer.Option(
+        default=SourceState.INIT.value,  # This needs to be string due to bug in typer package
+        help="Final state of the execution",
+        case_sensitive=False,
+    ),
     debug: Annotated[
         bool, typer.Option(help="Run app without saving any information to the backend")
     ] = True,
-    verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = True,
+    verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = False,
     version: Annotated[
         Optional[bool], typer.Option("--version", callback=version_callback)
     ] = None,
     code: Annotated[
         Optional[str],
-        typer.Argument(help="Specify exam code if you want to reuse a code"),
+        typer.Option(help="Specify exam code if you want to reuse a code"),
     ] = None,
 ):
     """
@@ -49,6 +54,7 @@ def main(
     logger.info(f"{debug=}")
     logger.info(f"{verbose=}")
     logger.info(f"{version=}")
+    logger.info(f"{code=}")
 
 
 if __name__ == "__main__":
