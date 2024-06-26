@@ -3,12 +3,19 @@ from typing import Any, Optional
 
 import typer
 from rich import print
+from tenacity import retry, stop_after_attempt
 from typing_extensions import Annotated
 
+from examgpt.ai.aimodel import AIModel
+from examgpt.ai.model_providers.openai import OpenAIProvider
+from examgpt.core.config import settings
 from examgpt.core.exam import Exam
+from examgpt.core.question import QACollection
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
-from examgpt.sources.filetypes.base import SourceState
+from examgpt.sources.filetypes.base import Source, SourceState
 from examgpt.sources.filetypes.pdf import PDFFile
+from examgpt.storage.files import FileStorage
+from examgpt.utils.checkpoint import CheckpointService
 
 __version__ = "0.1.0"
 
@@ -32,8 +39,31 @@ def log(text: Any):
         print(str(text))
 
 
-@app.callback(invoke_without_command=True)
-def main(
+@app.command()
+def cleanup(
+    exam_code: Annotated[
+        str, typer.Option(help="Exam code of the exam", show_default=False)
+    ],
+):
+    """
+    Clean up all the resources for an exam
+    """
+    destination_folder = Path(settings.temp_folder) / exam_code
+    if destination_folder.exists():
+        destination_folder.unlink()
+    log("Cleanup complete.")
+
+
+@retry(stop=stop_after_attempt(10))
+def get_qa_collection(
+    source: Source, exam_id: str, exam_name: str, model: AIModel
+) -> QACollection | None:
+    qa_collection = source.get_qa_collection(exam_id, exam_name, model)
+    return qa_collection
+
+
+@app.command()
+def generate(
     name: Annotated[str, typer.Option(help="Name of the exam", show_default=False)],
     location: Annotated[
         str,
@@ -49,7 +79,7 @@ def main(
     debug: Annotated[
         bool, typer.Option(help="Run app without saving any information to the backend")
     ] = True,
-    verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = False,
+    verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = True,
     version: Annotated[
         Optional[bool],
         typer.Option("--version", help="Show CLI version", callback=version_callback),
@@ -92,12 +122,40 @@ def main(
     chunker = SimplePDFChunker(chunk_size=2500)
     pdf = PDFFile(location=location, chunker=chunker)
     debug_log(pdf.to_dict())
-    exam = Exam(name=name, sources=[pdf], exam_id="fragile-parking")
+    exam = Exam(name=name, sources=[pdf])
     debug_log(exam)
 
     print(
         f"Your exam code is [bold green]{exam.exam_id}[/bold green]. Please use this code to start practicing in Telegram app."
     )
+
+    # Copy
+    log("Copying content...")
+    destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
+    storage = FileStorage(folder=destination_folder)
+    storage.copy(sources=exam.sources)
+    debug_log(f"New content location: {pdf.location}")
+
+    # Chunk
+    log("Chunking content...")
+    pdf.chunk()
+    storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
+    log("Chunking complete")
+
+    # # Generate QA
+    # log(
+    #     "Generating flash cards and multiple choice questions. This can take few minutes..."
+    # )
+    # pdf.limit_chunks()  # for testing only
+    # model = AIModel(model_provider=OpenAIProvider())
+    # CheckpointService.init(destination_folder)
+    # qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
+    # CheckpointService.delete_checkpoint()
+    # debug_log(qa_collection)
+    # storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
+    # log("Generation complete.")
+
+    # Cleanup
 
 
 if __name__ == "__main__":
