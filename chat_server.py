@@ -136,7 +136,7 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if not last_answer == "X":
         if user_answer == last_answer:
-            await update.message.reply_text("Correct!")
+            await update.message.reply_text("Correct! ✅")
             chat_payload["correct_answer_count"] += 1
             context.bot_data.update({chat_id: chat_payload})
         else:

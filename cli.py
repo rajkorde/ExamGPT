@@ -83,6 +83,7 @@ def generate(
             help="Location of the file with study material", show_default=False
         ),
     ],
+    # # TODO: Remove this if not needed
     # final_state: SourceState = typer.Option(
     #     default=SourceState.INIT.value,  # This needs to be string due to bug in typer package
     #     help="Final state of the execution",
@@ -94,7 +95,7 @@ def generate(
             help="Limit the number of chunks to use for generation",
             callback=validate_limit,
         ),
-    ] = 0,
+    ] = 5,
     debug: Annotated[
         bool, typer.Option(help="Run app without saving any information to the backend")
     ] = False,
@@ -159,18 +160,19 @@ def generate(
     print("Chunking complete")
 
     # Generate QA
-    print(
-        "Generating flash cards and multiple choice questions. This can take few minutes..."
-    )
     if limit:
         pdf.limit_chunks(limit)  # for testing only
         print(f"Limiting chunks to {limit}.")
-    # model = AIModel(model_provider=OpenAIProvider())
-    # CheckpointService.init(destination_folder)
-    # qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
-    # CheckpointService.delete_checkpoint()
-    # storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
-    # print("Generation complete.")
+
+    print(
+        "Generating flash cards and multiple choice questions. This can take few minutes..."
+    )
+    model = AIModel(model_provider=OpenAIProvider())
+    CheckpointService.init(destination_folder)
+    qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
+    CheckpointService.delete_checkpoint()
+    storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
+    print("Generation complete.")
 
 
 if __name__ == "__main__":

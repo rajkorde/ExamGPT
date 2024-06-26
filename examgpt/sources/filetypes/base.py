@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
@@ -108,7 +109,7 @@ class Source(ABC):
         """
         Limits the number of chunks to process for testing
         """
-        self.chunks = self.chunks[:n]
+        self.chunks = random.sample(self.chunks, n)
 
     @CheckpointService.checkpoint
     def _get_longform_qa(
