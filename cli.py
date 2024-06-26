@@ -13,7 +13,7 @@ from examgpt.core.config import settings
 from examgpt.core.exam import Exam
 from examgpt.core.question import QACollection
 from examgpt.sources.chunkers.pdf_chunker import SimplePDFChunker
-from examgpt.sources.filetypes.base import Source, SourceState
+from examgpt.sources.filetypes.base import Source
 from examgpt.sources.filetypes.pdf import PDFFile
 from examgpt.storage.files import FileStorage
 from examgpt.utils.checkpoint import CheckpointService
@@ -31,21 +31,33 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
+@app.callback()
+def version(
+    version: Annotated[
+        Optional[bool],
+        typer.Option("--version", help="Show CLI version", callback=version_callback),
+    ] = None,
+):
+    return
+
+
 @app.command()
 def cleanup(
-    exam_code: Annotated[
+    code: Annotated[
         str, typer.Option(help="Exam code of the exam", show_default=False)
     ],
 ):
     """
     Clean up all the resources for an exam
     """
-    destination_folder = Path(settings.temp_folder) / exam_code
+    destination_folder = Path(settings.temp_folder) / code
     if destination_folder.exists():
         shutil.rmtree(
             str(destination_folder),
         )
-    print(f"Cleanup complete for {exam_code}.")
+        print(f"Cleanup complete for {code}.")
+    else:
+        print(f"[bold red]Error:[/bold red] No content found for {code}.")
 
 
 @retry(stop=stop_after_attempt(10))
@@ -54,6 +66,12 @@ def get_qa_collection(
 ) -> QACollection | None:
     qa_collection = source.get_qa_collection(exam_id, exam_name, model)
     return qa_collection
+
+
+def validate_limit(limit: int) -> int:
+    if limit < 0:
+        raise typer.BadParameter("Limit must be greater than zero.")
+    return limit
 
 
 @app.command()
@@ -65,19 +83,24 @@ def generate(
             help="Location of the file with study material", show_default=False
         ),
     ],
-    final_state: SourceState = typer.Option(
-        default=SourceState.INIT.value,  # This needs to be string due to bug in typer package
-        help="Final state of the execution",
-        case_sensitive=False,
-    ),
+    # final_state: SourceState = typer.Option(
+    #     default=SourceState.INIT.value,  # This needs to be string due to bug in typer package
+    #     help="Final state of the execution",
+    #     case_sensitive=False,
+    # ),
+    limit: Annotated[
+        Optional[int],
+        typer.Option(
+            help="Limit the number of chunks to use for generation",
+            callback=validate_limit,
+        ),
+    ] = 0,
     debug: Annotated[
         bool, typer.Option(help="Run app without saving any information to the backend")
     ] = False,
-    verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = True,
-    version: Annotated[
-        Optional[bool],
-        typer.Option("--version", help="Show CLI version", callback=version_callback),
-    ] = None,
+    verbose: Annotated[
+        bool, typer.Option(help="Enable verbose debugging output")
+    ] = False,
     code: Annotated[
         Optional[str],
         typer.Option(help="Specify exam code if you want to reuse a code"),
@@ -102,8 +125,7 @@ def generate(
         return
     state["verbose"] = verbose
 
-    print(f"{debug=}")
-    log_level = "debug" if debug else "error"
+    log_level = "debug" if verbose else "error"
     settings.configure_logging(log_level)
     logger = settings.get_logger()
 
@@ -112,7 +134,11 @@ def generate(
     chunker = SimplePDFChunker(chunk_size=2500)
     pdf = PDFFile(location=location, chunker=chunker)
     logger.info(pdf.to_dict())
-    exam = Exam(name=name, sources=[pdf])
+    exam = (
+        Exam(name=name, sources=[pdf], exam_id=code)
+        if code
+        else Exam(name=name, sources=[pdf])
+    )
     logger.info(exam)
 
     print(
@@ -136,13 +162,15 @@ def generate(
     print(
         "Generating flash cards and multiple choice questions. This can take few minutes..."
     )
-    pdf.limit_chunks()  # for testing only
-    model = AIModel(model_provider=OpenAIProvider())
-    CheckpointService.init(destination_folder)
-    qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
-    CheckpointService.delete_checkpoint()
-    storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
-    print("Generation complete.")
+    if limit:
+        pdf.limit_chunks(limit)  # for testing only
+        print(f"Limiting chunks to {limit}.")
+    # model = AIModel(model_provider=OpenAIProvider())
+    # CheckpointService.init(destination_folder)
+    # qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
+    # CheckpointService.delete_checkpoint()
+    # storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
+    # print("Generation complete.")
 
 
 if __name__ == "__main__":
