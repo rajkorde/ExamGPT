@@ -57,7 +57,7 @@ No exam code provided.
     if message is None:
         message = f"Invalid exam code. Please provide a valid exam code: {exam_id}"
     else:
-        message = f"Welcome to {chat.qacollection.exam_name} exam practice!"
+        message = f"Welcome to {chat.qacollection.exam_name} practice!"
     await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 

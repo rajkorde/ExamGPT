@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 from typing import Any, Optional
 
@@ -35,8 +36,7 @@ def debug_log(text: Any):
 
 
 def log(text: Any):
-    if state["verbose"]:
-        print(str(text))
+    print(str(text))
 
 
 @app.command()
@@ -50,7 +50,9 @@ def cleanup(
     """
     destination_folder = Path(settings.temp_folder) / exam_code
     if destination_folder.exists():
-        destination_folder.unlink()
+        shutil.rmtree(
+            str(destination_folder),
+        )
     log("Cleanup complete.")
 
 
@@ -142,20 +144,17 @@ def generate(
     storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
     log("Chunking complete")
 
-    # # Generate QA
-    # log(
-    #     "Generating flash cards and multiple choice questions. This can take few minutes..."
-    # )
-    # pdf.limit_chunks()  # for testing only
-    # model = AIModel(model_provider=OpenAIProvider())
-    # CheckpointService.init(destination_folder)
-    # qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
-    # CheckpointService.delete_checkpoint()
-    # debug_log(qa_collection)
-    # storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
-    # log("Generation complete.")
-
-    # Cleanup
+    # Generate QA
+    log(
+        "Generating flash cards and multiple choice questions. This can take few minutes..."
+    )
+    pdf.limit_chunks()  # for testing only
+    model = AIModel(model_provider=OpenAIProvider())
+    CheckpointService.init(destination_folder)
+    qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
+    CheckpointService.delete_checkpoint()
+    storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
+    log("Generation complete.")
 
 
 if __name__ == "__main__":
