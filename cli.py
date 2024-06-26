@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 import typer
 from rich import print
@@ -22,21 +22,13 @@ __version__ = "0.1.0"
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 state = {"verbose": False, "debug": False}
+global logger
 
 
 def version_callback(value: bool):
     if value:
         print(f"ExamGPT CLI Version: {__version__}")
         raise typer.Exit()
-
-
-def debug_log(text: Any):
-    if state["debug"]:
-        print(str(text))
-
-
-def log(text: Any):
-    print(str(text))
 
 
 @app.command()
@@ -53,7 +45,7 @@ def cleanup(
         shutil.rmtree(
             str(destination_folder),
         )
-    log("Cleanup complete.")
+    print(f"Cleanup complete for {exam_code}.")
 
 
 @retry(stop=stop_after_attempt(10))
@@ -80,7 +72,7 @@ def generate(
     ),
     debug: Annotated[
         bool, typer.Option(help="Run app without saving any information to the backend")
-    ] = True,
+    ] = False,
     verbose: Annotated[bool, typer.Option(help="Enable verbose output")] = True,
     version: Annotated[
         Optional[bool],
@@ -96,14 +88,6 @@ def generate(
     Once the processing of study material is complete, you will be provided with an exam code that you can use in telegram.
     """
 
-    # logger.info(f"{name=}")
-    # logger.info(f"{location=}")
-    # logger.info(f"{final_state=}")
-    # logger.info(f"{debug=}")
-    # logger.info(f"{verbose=}")
-    # logger.info(f"{version=}")
-    # logger.info(f"{code=}")
-
     # verify location
     if not Path(location).exists():
         print(f"[bold red]Error:[/bold red] File not found: {location}")
@@ -117,35 +101,39 @@ def generate(
         typer.Exit(-1)
         return
     state["verbose"] = verbose
-    state["debug"] = debug
+
+    print(f"{debug=}")
+    log_level = "debug" if debug else "error"
+    settings.configure_logging(log_level)
+    logger = settings.get_logger()
 
     # Init
-    log("Initializing Exam...")
+    print("Initializing Exam...")
     chunker = SimplePDFChunker(chunk_size=2500)
     pdf = PDFFile(location=location, chunker=chunker)
-    debug_log(pdf.to_dict())
+    logger.info(pdf.to_dict())
     exam = Exam(name=name, sources=[pdf])
-    debug_log(exam)
+    logger.info(exam)
 
     print(
         f"Your exam code is [bold green]{exam.exam_id}[/bold green]. Please use this code to start practicing in Telegram app."
     )
 
     # Copy
-    log("Copying content...")
+    print("Copying content...")
     destination_folder = str(Path(settings.temp_folder) / exam.exam_id)
     storage = FileStorage(folder=destination_folder)
     storage.copy(sources=exam.sources)
-    debug_log(f"New content location: {pdf.location}")
+    logger.info(f"New content location: {pdf.location}")
 
     # Chunk
-    log("Chunking content...")
+    print("Chunking content...")
     pdf.chunk()
     storage.save_to_json(data=exam.to_dict(), filename="chunks.json")
-    log("Chunking complete")
+    print("Chunking complete")
 
     # Generate QA
-    log(
+    print(
         "Generating flash cards and multiple choice questions. This can take few minutes..."
     )
     pdf.limit_chunks()  # for testing only
@@ -154,9 +142,8 @@ def generate(
     qa_collection = get_qa_collection(pdf, exam.exam_id, name, model)
     CheckpointService.delete_checkpoint()
     storage.save_to_json(data=qa_collection.to_dict(), filename="answers.json")
-    log("Generation complete.")
+    print("Generation complete.")
 
 
 if __name__ == "__main__":
     app()
-    typer.Typer()

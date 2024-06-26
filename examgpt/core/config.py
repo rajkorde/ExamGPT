@@ -12,18 +12,21 @@ class ApplicationSettings(BaseSettings):
     MODEL_FAMILY: str
     MODEL_NAME: str
     GOOGLE_API_KEY: str
-    log_level: str = Field(default="INFO")
+    log_level: str = Field(default="DEBUG")
     temp_folder: str = Field(default="temp")
 
     class Config:
         env_file = ".env"
 
     def __post_init__(self):
-        self.configure_logging()
+        self.configure_logging(self.log_level)
 
-    def configure_logging(self):
+    def configure_logging(self, level: str):
         logger.remove()
-        logger.add(sys.stdout, level=self.log_level.upper())
+        logger.add(sys.stdout, level=level.upper())
+
+    def get_logger(self):
+        return logger
 
 
 settings = ApplicationSettings()  # pyright: ignore

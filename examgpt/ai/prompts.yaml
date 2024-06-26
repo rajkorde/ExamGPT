@@ -6,7 +6,8 @@
     a question and answer based on that text.
     The question and answer should be short and concise.
     The question and answer should be relevant to the exam.
-    In your question generation, make no mention of the fact that you are given some text. 
+    In your question generation, make no mention of the fact that you are given some text, 
+    so dont say things like "as mentioned in the text..." 
     For example, dont create questions like 'what are the 3 drawbacks mentioned in the text?' 
     The questions should contain enough context to come up with the answer.
 
@@ -27,7 +28,8 @@
     The number of answer choices should be 4 and should be numbered A, B, C, and D.
     The question and answers should be short and concise.
     The question and answers should be relevant to the exam.
-    In your question generation, make no mention of the fact that you are given some text. 
+    In your question generation, make no mention of the fact that you are given some text, 
+    so dont say things like "as mentioned in the text..." 
     For example, dont create questions like 'what are the 3 drawbacks mentioned in the text?' 
     The questions should contain enough context to pick the right answer among the 4 choices.
 

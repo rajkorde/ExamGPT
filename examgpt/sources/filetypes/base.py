@@ -6,8 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Type
 from uuid import uuid4
 
-from loguru import logger
-
+from examgpt.core.config import settings
 from examgpt.core.exceptions import NotEnoughInformationInContext
 from examgpt.core.question import (
     LongformEnhanced,
@@ -21,6 +20,8 @@ from examgpt.utils.misc import get_current_time
 if TYPE_CHECKING:
     from examgpt.ai.aimodel import AIModel
     from examgpt.sources.chunkers.base import Chunker, TextChunk
+
+logger = settings.get_logger()
 
 
 class SourceType(Enum):

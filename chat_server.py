@@ -1,6 +1,5 @@
 import os
 
-from loguru import logger
 from telegram import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
@@ -16,9 +15,10 @@ from telegram.ext import (
 )
 
 from examgpt.core.config import settings  # noqa: F401 # type: ignore
-from examgpt.frontend.chatbot.chat_helper import ChatHelper, CommandArgs, command_parser
+from examgpt.frontend.chat_helper import ChatHelper, CommandArgs, command_parser
 
 chat = ChatHelper()
+logger = settings.get_logger()
 
 
 QUIZZING = 1

@@ -4,12 +4,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from loguru import logger
-
+from examgpt.core.config import settings
 from examgpt.core.exam import Exam
 from examgpt.core.question import QACollection
 from examgpt.sources.filetypes.base import Source
 from examgpt.storage.base import Storage
+
+logger = settings.get_logger()
 
 
 @dataclass
@@ -22,7 +23,6 @@ class FileStorage(Storage):
 
     def copy(self, sources: list[Source]) -> None:
         for source in sources:
-            print(source.location)
             file_path = Path(source.location)
             if not file_path.is_file():
                 logger.warning(f"File does not exist: {file_path}")

@@ -3,14 +3,14 @@ import random
 from pathlib import Path
 from typing import NamedTuple, Optional
 
-from loguru import logger
-
 from examgpt.core.config import ApplicationSettings
 from examgpt.core.question import MultipleChoiceEnhanced, QACollection
 from examgpt.storage.base import StorageType
 from examgpt.storage.files import FileStorage
 
 settings = ApplicationSettings()  # pyright: ignore
+
+logger = settings.get_logger()
 
 
 class CommandArgs(NamedTuple):

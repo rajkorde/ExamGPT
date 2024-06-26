@@ -2,7 +2,9 @@ import pickle
 from pathlib import Path
 from typing import Any, Callable
 
-from loguru import logger
+from examgpt.core.config import settings
+
+logger = settings.get_logger()
 
 
 class CheckpointService:
