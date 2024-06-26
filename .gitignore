@@ -161,4 +161,4 @@ cython_debug/
 
 testdata
 temp
-temp.py
+temp*.py
