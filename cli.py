@@ -109,7 +109,7 @@ def generate(
     log_level = "debug" if verbose else "error"
     settings.configure_logging(log_level)
 
-    cli_helper = CLIHelper(name, location, code)
+    cli_helper = CLIHelper(name, location, code) if code else CLIHelper(name, location)
 
     # Init
     print("Initializing Exam...")
@@ -127,7 +127,7 @@ def generate(
     # Chunk
     print("Chunking content...")
     cli_helper.chunk(SimplePDFChunker(chunk_size=2500))
-    print("Chunking complete")
+    print("Chunking complete.")
 
     # Generate QA
     print(

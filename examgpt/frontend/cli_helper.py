@@ -30,12 +30,11 @@ class CLIHelper:
         self,
         name: str,
         location: str,
-        code: Optional[str],
+        code: Optional[str] = None,
     ):
         self.name = name
         self.location = location
-        if code:
-            self.code = code
+        self.code = code
 
     def initialize(self) -> str:
         self.source = PDFFile(location=self.location)
@@ -65,6 +64,8 @@ class CLIHelper:
             self.source.limit_chunks(limit)  # for testing only
             print(f"Limiting chunks to {limit}.")
 
+        if not self.code:
+            raise RuntimeError("You need to run initialize first.")
         CheckpointService.init(folder=str(Path(settings.temp_folder) / self.code))
         qa_collection = get_qa_collection(self.source, self.code, self.exam.name, model)
         CheckpointService.delete_checkpoint()
