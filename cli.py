@@ -75,7 +75,7 @@ def generate(
             help="Limit the number of chunks to use for generation",
             callback=validate_limit,
         ),
-    ] = 5,
+    ] = 0,
     debug: Annotated[
         bool, typer.Option(help="Run app without saving any information to the backend")
     ] = False,

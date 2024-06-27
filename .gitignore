@@ -162,3 +162,4 @@ cython_debug/
 testdata
 temp
 temp*.py
+.DS_Store

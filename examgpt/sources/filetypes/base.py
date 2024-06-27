@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Type
 from uuid import uuid4
 
+from tqdm import tqdm
+
 from examgpt.core.config import settings
 from examgpt.core.exceptions import NotEnoughInformationInContext
 from examgpt.core.question import (
@@ -179,7 +181,7 @@ class Source(ABC):
         for scenario in scenarios:
             if scenario == Scenario.LONGFORM:
                 longform_qas: list[LongformEnhanced] = []
-                for i, chunk in enumerate(self.chunks):
+                for i, chunk in tqdm(enumerate(self.chunks)):
                     logger.info(
                         f"Generating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
                     )
@@ -195,7 +197,7 @@ class Source(ABC):
 
             elif scenario == Scenario.MULTIPLECHOICE:
                 multiplechoice_qas: list[MultipleChoiceEnhanced] = []
-                for i, chunk in enumerate(self.chunks):
+                for i, chunk in tqdm(enumerate(self.chunks)):
                     logger.info(
                         f"Generating multiple choice QA for chunk {i}/{total_chunks}: {chunk.id}"
                     )
