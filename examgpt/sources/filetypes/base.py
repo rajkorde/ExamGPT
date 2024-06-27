@@ -47,14 +47,12 @@ class Source(ABC):
     def __init__(
         self,
         location: str,
-        chunker: Chunker,
         qa_collection: Optional[QACollection] = None,
         type: SourceType = SourceType.UNKNOWN,
         id: str = str(uuid4()),
         chunks: list[TextChunk] = [],
     ):
         self.location = location
-        self.chunker = chunker
         self.type = type
 
         self.id = id
@@ -77,10 +75,10 @@ class Source(ABC):
         return decorator
 
     @abstractmethod
-    def chunk(self) -> list[TextChunk]: ...
+    def chunk(self, chunker: Chunker) -> list[TextChunk]: ...
 
     @abstractmethod
-    def create_text(self) -> str: ...
+    def create_text(self, chunker: Chunker) -> str: ...
 
     @abstractmethod
     def to_dict(self) -> dict[str, Any]: ...
@@ -109,7 +107,8 @@ class Source(ABC):
         """
         Limits the number of chunks to process for testing
         """
-        self.chunks = random.sample(self.chunks, n)
+        if n > 0:
+            self.chunks = random.sample(self.chunks, n)
 
     @CheckpointService.checkpoint
     def _get_longform_qa(
@@ -182,7 +181,7 @@ class Source(ABC):
                 longform_qas: list[LongformEnhanced] = []
                 for i, chunk in enumerate(self.chunks):
                     logger.info(
-                        f"Creating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
+                        f"Generating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
                     )
                     qae = self._get_longform_qa(
                         id=chunk.id,
@@ -198,7 +197,7 @@ class Source(ABC):
                 multiplechoice_qas: list[MultipleChoiceEnhanced] = []
                 for i, chunk in enumerate(self.chunks):
                     logger.info(
-                        f"Generating long form QA for chunk {i}/{total_chunks}: {chunk.id}"
+                        f"Generating multiple choice QA for chunk {i}/{total_chunks}: {chunk.id}"
                     )
                     qae = self._get_multiplechoice_qa(
                         id=chunk.id,

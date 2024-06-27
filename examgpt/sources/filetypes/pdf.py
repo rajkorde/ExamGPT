@@ -15,25 +15,24 @@ class PDFFile(Source):
     def __init__(
         self,
         location: str,
-        chunker: Chunker,
         qa_collection: Optional[QACollection] = None,
         type: SourceType = SourceType.PDF,
         id: str = str(uuid4()),
         chunks: list[TextChunk] = [],
     ):
-        super().__init__(location, chunker, qa_collection, type, id, chunks)
+        super().__init__(location, qa_collection, type, id, chunks)
 
-    def chunk(self) -> list[TextChunk]:
-        self.chunks = self.chunker.chunk(self)
+    def chunk(self, chunker: Chunker = SimplePDFChunker()) -> list[TextChunk]:
+        self.chunks = chunker.chunk(self)
         self.state = SourceState.CHUNKED
         return self.chunks
 
-    def create_text(self) -> str:
+    def create_text(self, chunker: Chunker = SimplePDFChunker()) -> str:
         if self.full_text:
             return self.full_text
 
         if not self.chunks:
-            self.chunks = self.chunker.chunk(self)
+            self.chunks = chunker.chunk(self)
 
         self.full_text = "".join([chunk.text for chunk in self.chunks])
         return self.full_text
@@ -45,7 +44,6 @@ class PDFFile(Source):
             type=SourceType(data["type"]),
             id=data["id"],
             chunks=[TextChunk.from_dict(chunk) for chunk in data["chunks"]],
-            chunker=SimplePDFChunker(),
         )
 
     def to_dict(self) -> dict[str, Any]:
