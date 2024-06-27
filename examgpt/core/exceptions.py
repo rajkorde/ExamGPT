@@ -22,12 +22,3 @@ class NotEnoughInformationInContext(BaseException):
     ):
         message: str = f"Text chunk does not have enough information to create a question: {chunk_id}"
         super().__init__(message=message)
-
-
-# TODO: Remove
-class UndefinedCheckpointPath(BaseException):
-    """Raised when trying to checkpoint some data without defining checkpoint file first"""
-
-    def __init__(self):
-        message = "Undefined checkpoint file. Call the CheckpointService() first to set the checkpoint file"
-        super().__init__(message=message)

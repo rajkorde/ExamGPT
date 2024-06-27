@@ -127,9 +127,12 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     chat_id = update.effective_chat.id
 
-    # TODO: try catch needed here
-    chat_payload = context.bot_data[chat_id]
-    # logger.debug(f"{chat_payload=}")
+    try:
+        chat_payload = context.bot_data[chat_id]
+    except Exception:
+        logger.error("Couldn't not find payload in bot data for {chat_id}")
+        return await error(update, context)
+
     last_answer = chat_payload["last_answer"]
     question_list = chat_payload["question_list"]
     user_answer = update.effective_message.text
@@ -175,8 +178,12 @@ async def quiz_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def completed_mc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     chat_id = update.effective_chat.id
 
-    # try catch needed here
-    chat_payload = context.bot_data[chat_id]
+    try:
+        chat_payload = context.bot_data[chat_id]
+    except Exception:
+        logger.error("Couldn't not find payload in bot data for {chat_id}")
+        return await error(update, context)
+
     correct = chat_payload["correct_answer_count"]
     total = chat_payload["total_question_count"]
     reply_text = f"You got {correct} out of {total} right!"
@@ -254,9 +261,12 @@ async def quiz_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     chat_id = update.effective_chat.id
 
-    # TODO: try catch needed here
-    chat_payload = context.bot_data[chat_id]
-    # logger.debug(f"{chat_payload=}")
+    try:
+        chat_payload = context.bot_data[chat_id]
+    except Exception:
+        logger.error("Couldn't not find payload in bot data for {chat_id}")
+        return await error(update, context)
+
     last_answer = chat_payload["last_answer"]
     question_list = chat_payload["question_list"]
 
@@ -291,8 +301,12 @@ async def quiz_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def completed_lf(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     chat_id = update.effective_chat.id
 
-    # TODO: try catch needed here
-    chat_payload = context.bot_data[chat_id]
+    try:
+        chat_payload = context.bot_data[chat_id]
+    except Exception:
+        logger.error("Couldn't not find payload in bot data for {chat_id}")
+        return await error(update, context)
+
     total = chat_payload["total_question_count"]
     reply_text = f"You practiced on {total} flash cards!"
 

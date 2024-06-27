@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -12,13 +11,10 @@ class StorageType(Enum):
     CLOUD = "cloud"
 
 
-# TODO: This should not be a data class, make it a protocol
-@dataclass
 class Storage(ABC):
     @abstractmethod
     def copy(self, sources: list[Source]) -> None: ...
 
-    # TODO: change this to save specific objects
     @abstractmethod
     def save_to_json(self, data: dict[Any, Any], filename: str) -> None: ...
 

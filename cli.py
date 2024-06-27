@@ -69,12 +69,6 @@ def generate(
             help="Location of the file with study material", show_default=False
         ),
     ],
-    # # TODO: Remove this if not needed
-    # final_state: SourceState = typer.Option(
-    #     default=SourceState.INIT.value,  # This needs to be string due to bug in typer package
-    #     help="Final state of the execution",
-    #     case_sensitive=False,
-    # ),
     limit: Annotated[
         Optional[int],
         typer.Option(

@@ -62,17 +62,15 @@ class CheckpointService:
             cls._processed_objects[id] = {}
         cls._processed_objects[id][scenario] = result
 
-    # TODO: clean this up so that the name of the id attribute can be pass through
-    # decorator definition. Right now, its hardcoded to id.
     @classmethod
     def checkpoint(cls, func: Callable[..., Any]) -> Any:
         def wrapper(instance: Any, *args, **kwargs):  # type: ignore
             """
-            This method that needs to be checkpointed should have this signature.
-            This can only checkpoint methods that are part of a class.
-            IMPORTANT: The method to be checkpointed must have 2 keyword str arguments
-            for checkpoint to work. One argument "id" that is a unique identifier
-            and another argument called "scenario" to checkpoint for.
+            IMPORTANT: For checkpointing service to work:
+            * The method to be checkpointed must have 2 keyword str arguments.
+              One argument "id" that is a unique identifier and another argument
+              called "scenario" to checkpoint for.
+            * Checkpointing service currently only works for class methods.
 
             Args:
                 instance: Placeholder for self. This assumes that the method to be checkpointed
@@ -87,8 +85,13 @@ class CheckpointService:
                     "Checkpoint file undefined. Did you forget to run init() method?"
                 )
 
-            id = kwargs.get("id")
-            scenario = kwargs.get("scenario")
+            try:
+                id = kwargs.get("id")
+                scenario = kwargs.get("scenario")
+            except KeyError as e:
+                raise RuntimeError(
+                    f"Checkpointed service must have 2 keyword string arguments id and scenario: {str(e)}"
+                )
 
             if not id or not scenario:
                 raise RuntimeError(

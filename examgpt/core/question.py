@@ -23,31 +23,8 @@ class LongForm(BaseModel):
     question: str = Field(description="An exam question with a longform answer")
     answer: str = Field(description="A longform answer to an exam question")
 
-    # TODO: add validators
-
     def __str__(self) -> str:
         return f"Question: {self.question}\nAnswer: {self.answer}"
-
-
-# TODO: Deprecate this. Results in too many errors
-class ComplexMultipleChoice(BaseModel):
-    question: str = Field(description="An exam question with a multiple choice answers")
-    answer: AnswerOption = Field(description="Answer to a multiple choice question")
-    choices: dict[AnswerOption, str] = Field(
-        description="A dict of 4 choices for an exam question, out of which one is corrrect",
-    )
-
-    # TODO: add validators
-
-    def __str__(self) -> str:
-        return "\n".join(
-            [
-                f"Question: {self.question}",
-                "Choices:",
-                *[f"{key.value}: {value}" for key, value in self.choices.items()],
-                f"Answer: {self.answer.value}",
-            ]
-        )
 
 
 class MultipleChoice(BaseModel):
@@ -62,8 +39,6 @@ class MultipleChoice(BaseModel):
             A dict of key and value for 4 choices for an exam question, out of which one is corrrect. 
             The possible key values are A, B, C, D and value contains the possible answer""",
     )
-
-    # TODO: add validators
 
     def __str__(self) -> str:
         return "\n".join(
@@ -86,8 +61,6 @@ class MultipleChoiceEnhanced(MultipleChoice):
     last_updated: str
 
 
-# TODO: this is not optimal implementation. Use strategy pattern to make qa collection part of source
-# and Exam class should have access to these as well.
 @dataclass
 class QACollection:
     exam_id: str
