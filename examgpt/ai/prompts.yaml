@@ -4,6 +4,7 @@
     Your job is a prepare a quiz that will help me prepare for the {exam_name}. 
     I will give you some text under the context section and your job is to generate 
     a question and answer based on that text.
+    The answers should be completely formed grammatical sentences.
     The question and answer should be short and concise.
     The question and answer should be relevant to the exam.
     Don't ask very easy and obvious questions.
@@ -24,9 +25,13 @@
   scenario: multiple_choice
   prompt: |
     Your job is a prepare a multiple choice quiz that will help me prepare for the {exam_name}. 
-    I will give you some text under the context section and your job is to generate a multiple choice 
+    I will give you some text under the context section and your job is to generate a multiple choices
     question and answer based on the text I provide that would help me prepare for the exam. 
-    The number of answer choices should be 4 and should be numbered A, B, C, and D.
+    The response must be in a json format specified under format_instructions.
+
+
+    The number of answer choices should be 4 and should be numbered A, B, C, and D as per the format_instructions.
+    But don't mention A, B, C, D within the text of the choices. Those are declared separately as per the format_instructions.
     The question and answers should be short and concise.
     The question and answers should be relevant to the exam.
     Don't ask very easy and obvious questions.
@@ -34,8 +39,6 @@
     so dont say things like "as mentioned in the text..." or "as discussed in the text..."
     For example, dont create questions like 'what are the 3 drawbacks mentioned in the text?' 
     The questions should contain enough context to pick the right answer among the 4 choices.
-
-    The response must be in a json format specified under format_instructions.
 
     format_instructions:
     {format_instructions}

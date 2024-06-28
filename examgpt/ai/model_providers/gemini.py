@@ -4,6 +4,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from examgpt.ai.base import ModelConfig, ModelProvider
 from examgpt.ai.constants import ModelFamily, ModelName
+from examgpt.core.config import settings
+
+logger = settings.get_logger()
 
 
 @dataclass

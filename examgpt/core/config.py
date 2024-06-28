@@ -1,9 +1,12 @@
 import sys
+from typing import Any
+
+from dotenv import load_dotenv
 
 # from dotenv import load_dotenv
 from loguru import logger
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ApplicationSettings(BaseSettings):
@@ -15,8 +18,14 @@ class ApplicationSettings(BaseSettings):
     log_level: str = Field(default="DEBUG")
     temp_folder: str = Field(default="temp")
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        assert load_dotenv()
+
+    # class Config:
+    #     env_file = ".env"
 
     def __post_init__(self):
         self.configure_logging(self.log_level)
