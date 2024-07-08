@@ -8,13 +8,19 @@ from codenamize import codenamize  # type: ignore
 from examgpt.sources.filetypes.base import Source
 from examgpt.utils.misc import get_current_time
 
-# from examgpt.sources.filetypes.pdf import PDFFile
+
+def get_code() -> str:
+    code = codenamize(str(uuid4()))
+    # ensure no spaces in the generated code
+    while " " in code:
+        code = codenamize(str(uuid4()))
+    return code
 
 
 @dataclass
 class Exam:
     name: str
-    exam_id: str = field(default_factory=lambda: codenamize(str(uuid4())))
+    exam_id: str = field(default_factory=get_code)
     sources: list[Source] = field(default_factory=list)
     last_updated: str = field(default_factory=get_current_time)
     post_event: bool = False
