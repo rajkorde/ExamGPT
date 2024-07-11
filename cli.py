@@ -7,6 +7,8 @@ from rich import print
 from typing_extensions import Annotated
 
 from examgpt.ai.aimodel import AIModel
+from examgpt.ai.base import ModelConfig
+from examgpt.ai.constants import ModelFamily, ModelName
 from examgpt.ai.model_providers.openai import OpenAIProvider
 from examgpt.core.config import settings
 from examgpt.frontend.cli_helper import CLIHelper
@@ -133,7 +135,13 @@ def generate(
     print(
         "Generating flash cards and multiple choice questions. This can take few minutes..."
     )
-    model = AIModel(model_provider=OpenAIProvider())
+
+    # model = AIModel(OpenAIProvider())
+    model = AIModel(
+        model_provider=OpenAIProvider(
+            ModelConfig(ModelFamily.OPENAI, ModelName.GPT4O, cost_ppm_token=500)
+        )
+    )
     cli_helper.generate_qa(model, limit)
     print("Generation complete.")
 

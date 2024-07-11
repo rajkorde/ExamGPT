@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import NamedTuple, Optional
 
 from examgpt.core.config import ApplicationSettings
-from examgpt.core.question import MultipleChoiceEnhanced, QACollection
+from examgpt.core.question import LongformEnhanced, MultipleChoiceEnhanced, QACollection
 from examgpt.storage.base import StorageType
 from examgpt.storage.files import FileStorage
 
@@ -67,6 +67,30 @@ class ChatHelper:
 
         return self.qacollection.exam_id
 
+    def get_question_count_mc(self) -> int:
+        question_count = 0
+        if not self.qacollection:
+            logger.warning(f"{__name__} called before initalizing qa collection.")
+            return question_count
+        question_count = (
+            0
+            if not self.qacollection.multiple_choice_qa
+            else len(self.qacollection.multiple_choice_qa)
+        )
+        return question_count
+
+    def get_question_count_lf(self) -> int:
+        question_count = 0
+        if not self.qacollection:
+            logger.warning(f"{__name__} called before initalizing qa collection.")
+            return question_count
+        question_count = (
+            0
+            if not self.qacollection.long_form_qa
+            else len(self.qacollection.long_form_qa)
+        )
+        return question_count
+
     def multiple_choice(self, topic: str = "") -> Optional[MultipleChoiceEnhanced]:
         if self.qacollection.multiple_choice_qa is not None:
             question = random.choice(self.qacollection.multiple_choice_qa)
@@ -74,7 +98,7 @@ class ChatHelper:
             question = None
         return question
 
-    def longform(self, n: int = 1, topic: str = ""):
+    def longform(self, n: int = 1, topic: str = "") -> Optional[LongformEnhanced]:
         if self.qacollection.long_form_qa is not None:
             question = random.choice(self.qacollection.long_form_qa)
         else:

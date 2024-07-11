@@ -90,6 +90,13 @@ Please run /exam command first.
         f"Multiple Choice Scenario. Count: {command.question_count}, Topic:{command.question_topic}"
     )
 
+    if command.question_count > chat.get_question_count_mc():
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Max allowed questions are {chat.get_question_count_mc()}",
+        )
+        return ConversationHandler.END
+
     question_count = command.question_count
     chat_id = update.effective_chat.id
 
@@ -222,6 +229,13 @@ Please run /exam command first.
     logger.info(
         f"Long form Scenario. Count: {command.question_count}, Topic:{command.question_topic}"
     )
+
+    if command.question_count > chat.get_question_count_lf():
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Max allowed questions are {chat.get_question_count_lf()}",
+        )
+        return ConversationHandler.END
 
     question_count = command.question_count
     chat_id = update.effective_chat.id
