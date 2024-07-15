@@ -343,6 +343,14 @@ async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
+async def whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    reply_text = """
+Rajesh Korde
+https://www.linkedin.com/in/rkorde/
+"""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=reply_text)
+
+
 def main() -> None:
     token = os.environ["TG_BOT_TOKEN"]
 
@@ -378,9 +386,11 @@ def main() -> None:
     application.add_handler(mc_handler)
     application.add_handler(lf_handler)
     application.add_handler(CommandHandler("exam", exam))
+    # TODO: remove this after demo
+    application.add_handler(CommandHandler("whoami", whoami))
     application.add_handler(CommandHandler(["start", "help"], start))
 
-    logger.info("Starting App")
+    logger.info("Chat server started")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
