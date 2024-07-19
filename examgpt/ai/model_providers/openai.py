@@ -12,7 +12,7 @@ logger = settings.get_logger()
 @dataclass
 class OpenAIConfig(ModelConfig):
     family: ModelFamily = field(default=ModelFamily.OPENAI)
-    name: ModelName = field(default=ModelName.GPT3_5_TURBO)
+    name: ModelName = field(default=ModelName.GPT4OMINI)
     cost_ppm_token: int = 50
     chunk_size: int = 2500
 

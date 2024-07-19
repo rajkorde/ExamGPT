@@ -136,12 +136,12 @@ def generate(
         "Generating flash cards and multiple choice questions. This can take few minutes..."
     )
 
-    # model = AIModel(OpenAIProvider())
-    model = AIModel(
-        model_provider=OpenAIProvider(
-            ModelConfig(ModelFamily.OPENAI, ModelName.GPT4O, cost_ppm_token=500)
-        )
-    )
+    model = AIModel(OpenAIProvider())
+    # model = AIModel(
+    #     model_provider=OpenAIProvider(
+    #         ModelConfig(ModelFamily.OPENAI, ModelName.GPT4O, cost_ppm_token=500)
+    #     )
+    # )
     cli_helper.generate_qa(model, limit)
     print("Generation complete.")
 
